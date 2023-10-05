@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace DWDWeatherBand
 {
@@ -17,7 +18,19 @@ namespace DWDWeatherBand
         private UIElement _taskbarMonitor;
         public Deskband()
         {
-            _taskbarMonitor = new TaskbarMonitor(this);
+            try
+            {
+                _taskbarMonitor = new TaskbarMonitor(this);
+
+            }
+            catch (Exception e)
+            {
+                System.Windows.Forms.MessageBox.Show(
+                    e.ToString(),
+                    "Unhandled exception",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
 #if DEBUG
         public Deskband(bool _)

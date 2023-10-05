@@ -189,9 +189,10 @@ namespace DWDWeatherBand
             public DateTime Time;
         }
 
-        private readonly string name;
+        private string name;
         private string stationIDMosmix;
         private string[,] stationIDHistory = new string[DWDSettings.Resolutions.Length, DWDSettings.DataTypes.Length];
+        private bool geoLocationSet = false;
         private float latitude;
         private float longitude;
 
@@ -213,25 +214,7 @@ namespace DWDWeatherBand
         #region Constructors
         public DWDWeather()
         {
-            using (GeoCoordinateWatcher watcher = new GeoCoordinateWatcher(GeoPositionAccuracy.Default))
-            {
-                GeoCoordinate coord = watcher.Position.Location;
-
-                if (!coord.IsUnknown)
-                {
-                    latitude = (float)coord.Latitude;
-                    longitude = (float)coord.Longitude;
-                }
-                else
-                {
-                    bool success = SetGeoFromIP();
-                    if (!success)
-                    {
-                        return;
-                    }
-                }
-            }
-            stationIDMosmix = GetMosmixStationFromGeoPosition(out name);
+            Init();
 #if DEBUG
             System.Windows.Forms.MessageBox.Show(
                 $"{stationIDMosmix} {name}",
@@ -249,7 +232,8 @@ namespace DWDWeatherBand
         {
             latitude = Latitude;
             longitude = Longitude;
-            stationIDMosmix = GetMosmixStationFromGeoPosition(out name);
+            geoLocationSet = true;
+            Init();
         }
         #endregion
 
@@ -1033,13 +1017,46 @@ namespace DWDWeatherBand
             double rh_c3 = 241.2;
             return 100 * Math.Exp((rh_c2 * dewpoint / (rh_c3 + dewpoint)) - (rh_c2 * temperature / (rh_c3 + temperature)));
         }
+
+        private bool SetGeoPosition()
+        {
+            using (GeoCoordinateWatcher watcher = new GeoCoordinateWatcher(GeoPositionAccuracy.Default))
+            {
+                GeoCoordinate coord = watcher.Position.Location;
+
+                if (!coord.IsUnknown)
+                {
+                    latitude = (float)coord.Latitude;
+                    longitude = (float)coord.Longitude;
+                }
+                else
+                {
+                    bool success = SetGeoFromIP();
+                    if (!success)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
         #endregion
         #endregion
 
         #region public
+        public bool Init()
+        {
+            if (!geoLocationSet && !SetGeoPosition())
+            {
+                return false;
+            }
+                
+            stationIDMosmix = GetMosmixStationFromGeoPosition(out name);
+            return stationIDHistory != default;
+        }
         public async Task<bool> UpdateNow()
         {
-            if (stationIDMosmix == default)
+            if (stationIDMosmix == default && !await Task.Run(delegate { return Init(); }))
             {
                 return false;
             }
@@ -1098,7 +1115,7 @@ namespace DWDWeatherBand
 
         public async Task<bool> UpdateHighLow()
         {
-            if (stationIDMosmix == default)
+            if (stationIDMosmix == default && !await Task.Run(delegate { return Init(); }))
             {
                 return false;
             }
