@@ -64,12 +64,19 @@ namespace DWDWeatherBand
             updateTimer = new DispatcherTimer {
                 Interval = TimeSpan.FromMinutes(properties.UpdateIntervall)
             };
+#if DEBUG
+            updateTimer.Interval = TimeSpan.FromMinutes(1);
+#endif
+            updateTimer.Tick += new EventHandler(TickUpdate);
+
             errorTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(properties.ErrorIntervall)
             };
+            errorTimer.Tick += new EventHandler(TickUpdate);
             await Init();
         }
+
         private async Task Init()
         {
             await Task.Run(() =>
@@ -95,6 +102,12 @@ namespace DWDWeatherBand
 
             await UpdateText();
         }
+
+        private async void TickUpdate(object sender, EventArgs e)
+        {
+            await UpdateText();
+        }
+
         private async Task UpdateText()
         {
             updateTimer.Stop();
