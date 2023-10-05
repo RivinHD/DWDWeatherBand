@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{46B3FD1E-3101-4AF7-AB45-89B9E7FA2FF5}</ProjectGuid>
+    <OutputType>library</OutputType>
+    <RootNamespace>DWDWeatherBand</RootNamespace>
+    <AssemblyName>DWDWeatherBand</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;DESKBAND_WPF </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;DESKBAND_WPF </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.11.54.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>..\packages\HtmlAgilityPack.1.11.54\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Device" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Converters.cs" />
+    <Compile Include="CSDeskBand.cs" />
+    <Compile Include="DWDWeather.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="TaskbarMonitor.xaml.cs">
+      <DependentUpon>TaskbarMonitor.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Deskband.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="Resources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TaskbarMonitor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\wettericons\Regen_schwer.png" />
+    <Resource Include="Resources\wettericons\Bedeckt.png" />
+    <Resource Include="Resources\wettericons\Bewoelkt_gering.png" />
+    <Resource Include="Resources\wettericons\Bewoelkt_schwer.png" />
+    <Resource Include="Resources\wettericons\Nebel_gefrierend.png" />
+    <Resource Include="Resources\wettericons\Gewitter_Hagel_leicht.png" />
+    <Resource Include="Resources\wettericons\Gewitter_Hagel_schwer.png" />
+    <Resource Include="Resources\wettericons\Gewitter_leicht.png" />
+    <Resource Include="Resources\wettericons\Gewitter_mittel.png" />
+    <Resource Include="Resources\wettericons\Gewitter_schwer.png" />
+    <Resource Include="Resources\wettericons\Glatteis.png" />
+    <Resource Include="Resources\wettericons\Regen_gefrierend_leicht.png" />
+    <Resource Include="Resources\wettericons\Regen_gefrierend_schwer.png" />
+    <Resource Include="Resources\wettericons\Graupelschauer.png" />
+    <Resource Include="Resources\wettericons\Hagel_leicht.png" />
+    <Resource Include="Resources\wettericons\Hagel_schwer.png" />
+    <Resource Include="Resources\wettericons\Nebel.png" />
+    <Resource Include="Resources\wettericons\Regenschauer_leicht.png" />
+    <Resource Include="Resources\wettericons\Regenschauer_schwer.png" />
+    <Resource Include="Resources\wettericons\Regen_leicht.png" />
+    <Resource Include="Resources\wettericons\Regen_mittel.png" />
+    <Resource Include="Resources\wettericons\Schneefall_leicht.png" />
+    <Resource Include="Resources\wettericons\Schneefall_mittel.png" />
+    <Resource Include="Resources\wettericons\Schneefall_schwer.png" />
+    <Resource Include="Resources\wettericons\Schneeregenschauer_leicht.png" />
+    <Resource Include="Resources\wettericons\Schneeregenschauer_schwer.png" />
+    <Resource Include="Resources\wettericons\Schneeregen_leicht.png" />
+    <Resource Include="Resources\wettericons\Schneeregen_schwer.png" />
+    <Resource Include="Resources\wettericons\Schneeschauer_leicht.png" />
+    <Resource Include="Resources\wettericons\Schneeschauer_schwer.png" />
+    <Resource Include="Resources\wettericons\Sturm.png" />
+    <Resource Include="Resources\wettericons\Wolkenlos.png" />
+    <Resource Include="Resources\Wind.png" />
+    <Resource Include="Resources\warnicons\warn_icons_eis_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_eis_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_eis_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_eis_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_frost_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_frost_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_frost_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_frost_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_gewitter3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_gewitter_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_gewitter_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_gewitter_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_hitze.png" />
+    <Resource Include="Resources\warnicons\warn_icons_nebel_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_nebel_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_nebel_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_nebel_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_regen_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_regen_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_regen_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_regen_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_schnee_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_schnee_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_schnee_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_schnee_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_tau_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_tau_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_tau_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_tau_4.png" />
+    <Resource Include="Resources\warnicons\warn_icons_uv.png" />
+    <Resource Include="Resources\warnicons\warn_icons_wind_1.png" />
+    <Resource Include="Resources\warnicons\warn_icons_wind_2.png" />
+    <Resource Include="Resources\warnicons\warn_icons_wind_3.png" />
+    <Resource Include="Resources\warnicons\warn_icons_wind_4.png" />
+    <Resource Include="Resources\dwd-logo-png.png" />
+    <Resource Include="Resources\Humidity.png" />
+    <Content Include="Resources\Humidity.svg" />
+    <Resource Include="Resources\Precipitation.png" />
+    <Content Include="Resources\Precipitation.svg" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

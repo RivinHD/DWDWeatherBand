@@ -1,0 +1,36 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+	<Package Name="DWDWeatherBand" Manufacturer="Vincent Gerlach" Version="0.1.0.0" UpgradeCode="af387e03-d414-4b5a-97b5-2d250aee6e2d" Compressed="yes">
+		<!-- Version: major.minor.build.patch -->
+		<MajorUpgrade AllowDowngrades="no" DowngradeErrorMessage="!(loc.DowngradeError)"/>
+		<MediaTemplate EmbedCab="yes"/>
+
+		<SetProperty Id="MSIUSEREALADMINDETECTION" Value="1" Before="LaunchConditions"/>
+		<SetProperty Id="ALLUSERS" Value="2" Before="LaunchConditions"/>
+
+		<UI Id="MyWixUI_InstallDir">
+			<ui:WixUI Id="WixUI_InstallDir" />
+
+			<DialogRef Id="MyCustomPropertiesDlg" />
+
+			<Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="MyCustomPropertiesDlg" Order="4" Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
+			<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MyCustomPropertiesDlg" Order="1" />
+		</UI>
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+		<WixVariable Id="WixUILicenseRtf" Value="../LICENSE.rtf" />
+
+		<Icon Id="icon.ico" SourceFile="../AppIcon.ico" />
+		<Property Id="ARPPRODUCTICON" Value="icon.ico" />
+
+		<Feature Id="Main">
+			<ComponentGroupRef Id="AppComponents"/>
+		</Feature>
+
+		<InstallExecuteSequence>
+			<Custom Action="RegisterMonitor_Properties" Before="InstallInitialize"/>
+			<Custom Action="RegisterMonitor" Before="InstallFinalize" Condition="NOT Installed"/>
+			<Custom Action="UnregisterMonitor_Properties" Before="InstallInitialize"/>
+			<Custom Action="UnregisterMonitor" After="InstallInitialize" Condition="Installed AND (REMOVE=&quot;ALL&quot;)"/>
+		</InstallExecuteSequence>
+	</Package>
+</Wix>

@@ -1,0 +1,15 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
+			<Component>
+				<File Source="DWDWeatherBand.dll" />
+			</Component>
+			<Component>
+				<File Source="Newtonsoft.Json.dll" />
+			</Component>
+			<Component>
+				<File Source="HtmlAgilityPack.dll" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

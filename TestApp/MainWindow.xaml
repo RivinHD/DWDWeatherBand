@@ -1,0 +1,14 @@
+﻿<Window x:Class="TestApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TestApp"
+        xmlns:dWDWeatherBand="clr-namespace:DWDWeatherBand;assembly=DWDWeatherBand"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" Background="#FF2B2B2B">
+    <Grid>
+        <dWDWeatherBand:TaskbarMonitor Margin="87,157,544,180"/>
+        <Button Margin="361,204,315,163" Content="Test" Click="Button_Click"/>
+    </Grid>
+</Window>

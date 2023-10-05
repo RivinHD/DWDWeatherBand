@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<Binary Id="CustomActions" SourceFile="CsCustomeAction.CA.dll" />
+
+		<CustomAction Id="RegisterMonitor_Properties" Return="check" Property="RegisterMonitor" Value="INSTALLFOLDER=[INSTALLFOLDER]"/>
+		<CustomAction Id="RegisterMonitor" Execute="deferred" DllEntry="RegisterMonitor" BinaryRef="CustomActions" Impersonate="no" Return="check"/>
+
+		<CustomAction Id="UnregisterMonitor_Properties" Return="check" Property="UnregisterMonitor" Value="INSTALLFOLDER=[INSTALLFOLDER]"/>
+		<CustomAction Id="UnregisterMonitor" Execute="deferred" DllEntry="UnregisterMonitor" BinaryRef="CustomActions" Impersonate="no" Return="check"/>
+	</Fragment>
+</Wix>
