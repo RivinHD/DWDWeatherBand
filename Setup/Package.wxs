@@ -9,11 +9,6 @@
 
 		<UI Id="MyWixUI_InstallDir">
 			<ui:WixUI Id="WixUI_InstallDir" />
-
-			<DialogRef Id="MyCustomPropertiesDlg" />
-
-			<Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="MyCustomPropertiesDlg" Order="4" Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
-			<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MyCustomPropertiesDlg" Order="1" />
 		</UI>
 		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 

@@ -436,56 +436,88 @@ namespace DWDWeatherBand
             foreach (XElement element in data)
             {
                 // see https://opendata.dwd.de/weather/lib/MetElementDefinition.xml
+                string[] values;
                 string value;
+                string second;
+                float start;
+                float delta;
                 switch (element.Attribute(dwd + "elementName").Value)
                 {
                     case "TTT": // Temperature 2m above surface
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            temperature = float.Parse(value, CultureInfo.InvariantCulture) - 273.15f;
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            temperature = delta * now.Minute / 60 + start - 273.15f;
                         }
                         break;
                     case "Td": // Dewpoint 2m above surface
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
                         if (value != defaultSign)
                         {
-                            dewpoint = float.Parse(value, CultureInfo.InvariantCulture) - 273.15f;
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            dewpoint = delta * now.Minute / 60 + start - 273.15f;
                         }
                         break;
                     case "DD": // Wind direction
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            windDirection = float.Parse(value, CultureInfo.InvariantCulture);
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            windDirection = delta * now.Minute / 60 + start;
                         }
                         break;
                     case "FF": // Wind speed
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            wind = float.Parse(value, CultureInfo.InvariantCulture) * 3.6f;
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            wind = (delta * now.Minute / 60 + start) * 3.6f;
                         }
                         break;
                     case "FX1": // Maximum wind gust within the last hour
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            windMax = float.Parse(value, CultureInfo.InvariantCulture) * 3.6f;
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            windMax = (delta * now.Minute / 60 + start) * 3.6f;
                         }
                         break;
                     case "RR1c": // Total precipitation during the last hour consistent with significant weather
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            precipitation = float.Parse(value, CultureInfo.InvariantCulture);
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            precipitation = delta * now.Minute / 60 + start;
                         }
                         break;
                     case "N": // Total cloud cover
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
+                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        value = values[selectedColumn];
+                        second = values[selectedColumn + 1];
+                        if (value != defaultSign && second != defaultSign)
                         {
-                            cloudCover = float.Parse(value, CultureInfo.InvariantCulture);
+                            start = float.Parse(value, CultureInfo.InvariantCulture);
+                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
+                            cloudCover = delta * now.Minute / 60 + start;
                         }
                         break;
                     case "ww": // Significant Weather
