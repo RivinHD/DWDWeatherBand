@@ -939,12 +939,12 @@ namespace DWDWeatherBand
         #region AWS
         private JsonCasts.CurrentMeasurement CachAwsCurrent()
         {
-            if (cacheAwsCurrent.Value != default && cacheAwsCurrent.Key != default && cacheAwsCurrent.Key < DateTime.Now.AddMinutes(10))
+            if (cacheAwsCurrent.Value != default && cacheAwsCurrent.Key != default && cacheAwsCurrent.Key > DateTime.Now)
             {
                 return cacheAwsCurrent.Value;
             }
             JsonCasts.CurrentMeasurement item = GetJson<JsonCasts.CurrentMeasurement>(new Uri(DWDSettings.WarnwetterAWSUri, $"current_measurement_{stationIDMosmix}.json"));
-            cacheAwsCurrent = new KeyValuePair<DateTime, JsonCasts.CurrentMeasurement>(DateTime.Now, item);
+            cacheAwsCurrent = new KeyValuePair<DateTime, JsonCasts.CurrentMeasurement>(DateTime.Now.AddMinutes(10), item);
             return cacheAwsCurrent.Value;
         }
         #endregion
@@ -979,9 +979,6 @@ namespace DWDWeatherBand
                     }
 
                     T data = new JsonSerializer().Deserialize<T>(jsonIn);
-#if DEBUG
-                    Console.WriteLine("Geo from Ip Finished");
-#endif
                     return data;
                 }
             }
@@ -1015,9 +1012,9 @@ namespace DWDWeatherBand
             }
         }
 
-        private KeyValuePair<DateTime, byte[]> CacheData(Uri uri, KeyValuePair<DateTime, byte[]> current, TimeSpan expiredTime)
+        private KeyValuePair<DateTime, byte[]> CacheData(Uri uri, KeyValuePair<DateTime, byte[]> current, TimeSpan expireTime)
         {
-            if (current.Key != default && current.Key + expiredTime < DateTime.Now)
+            if (current.Key != default && current.Key > DateTime.Now)
             {
                 return current;
             }
@@ -1026,7 +1023,7 @@ namespace DWDWeatherBand
             {
                 using (CustomeWebClient client = new CustomeWebClient{Timeout = 500})
                 {
-                    return new KeyValuePair<DateTime, byte[]>(DateTime.Now, client.DownloadData(uri));
+                    return new KeyValuePair<DateTime, byte[]>(DateTime.Now + expireTime, client.DownloadData(uri));
                 }
             }
             catch (WebException ex)
@@ -1187,7 +1184,7 @@ namespace DWDWeatherBand
                     ItemTimed[] items = GetPoisCSV();
                     if (items.Length <= 0)
                     {
-                        return null;
+                        return new ItemTimed[0];
                     }
                     DateTime now = DateTime.Now;
                     List<ItemTimed> results = new List<ItemTimed>();
@@ -1208,7 +1205,7 @@ namespace DWDWeatherBand
                     ItemTimed[] items = GetMosmixData();
                     if (items.Length <= 0)
                     {
-                        return null;
+                        return new ItemTimed[0];
                     }
                     DateTime now = DateTime.Now;
                     int fittedStart = 0;

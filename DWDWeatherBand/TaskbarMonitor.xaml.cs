@@ -142,6 +142,7 @@ namespace DWDWeatherBand
             PrecipitationText.Text = $"- mm/h";
             WindText.Text = $"- km/h";
             WindImageRotation.Angle = 0;
+            LastUpdated.Content = DateTime.Now.ToString("HH:mm");
             BasePanel.UpdateLayout();
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
@@ -165,9 +166,20 @@ namespace DWDWeatherBand
             PrecipitationText.Text = $"{item.Precipitation:0.0} mm/h";
             WindText.Text = $"{item.Wind:0.0}-{item.MaxWind:0.0} km/h";
             WindImageRotation.Angle = item.WindDirection - 180;
+            LastUpdated.Content = DateTime.Now.ToString("HH:mm");
             BasePanel.UpdateLayout();
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
+        }
+
+        private void BasePanel_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            ShowInformation.IsOpen = true;
+        }
+
+        private void BasePanel_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            ShowInformation.IsOpen = false;
         }
     }
 }
