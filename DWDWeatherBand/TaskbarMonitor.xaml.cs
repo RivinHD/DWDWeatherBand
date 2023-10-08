@@ -21,6 +21,7 @@ using Microsoft.VisualBasic;
 using System.Threading;
 using Timer = System.Windows.Forms.Timer;
 using System.Windows.Threading;
+using System.Globalization;
 
 namespace DWDWeatherBand
 {
@@ -33,6 +34,7 @@ namespace DWDWeatherBand
         DWDWeather weather;
         DispatcherTimer updateTimer;
         DispatcherTimer errorTimer;
+        TaskbarInfo taskbarInfo;
         public TaskbarMonitor(CSDeskBandWpf w)
         {
             InitializeComponent();
@@ -49,9 +51,10 @@ namespace DWDWeatherBand
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             Settings.Properties properties = Settings.LoadedProperties;
-            TaskbarInfo taskbarInfo = new TaskbarInfo();
+            taskbarInfo = new TaskbarInfo();
             FontFamily font = new FontFamily(properties.Font);
 
+            taskbarInfo.TaskbarSizeChanged += new EventHandler<TaskbarSizeChangedEventArgs>(UpdateSize);
             Resources["SelectedFont"] = font;
 
             BasePanel.Height = taskbarInfo.Size.Height;
@@ -159,14 +162,23 @@ namespace DWDWeatherBand
                 IconBlock.Visibility = Visibility.Visible;
                 IconBlock.Source = new BitmapImage(new Uri($"Resources/wettericons/{Enum.GetName(typeof(WeatherIcon), item.Icon)}.png", UriKind.Relative));
             }
-            TemperaturText.Text = $"{item.Temperature:0.0}°C";
-            TemperaturMinText.Text = $"{TemperaturLow:0.0}°C";
-            TemperaturMaxText.Text = $"{TemperaturHigh:0.0}°C";
-            HumidityText.Text = $"{item.Humidity:0.0} %";
-            PrecipitationText.Text = $"{item.Precipitation:0.0} mm/h";
-            WindText.Text = $"{item.Wind:0.0}-{item.MaxWind:0.0} km/h";
+            CultureInfo culture = CultureInfo.InvariantCulture;
+            TemperaturText.Text = $"{item.Temperature.ToString("0.0", culture)}°C";
+            TemperaturMinText.Text = $"{TemperaturLow.ToString("0.0", culture)}°C";
+            TemperaturMaxText.Text = $"{TemperaturHigh.ToString("0.0", culture)}°C";
+            HumidityText.Text = $"{item.Humidity.ToString("0.0", culture)} %";
+            PrecipitationText.Text = $"{item.Precipitation.ToString("0.0", culture)} mm/h";
+            WindText.Text = $"{item.Wind.ToString("0.0", culture)}-{item.MaxWind.ToString("0.0", culture)} km/h";
             WindImageRotation.Angle = item.WindDirection - 180;
             LastUpdated.Content = DateTime.Now.ToString("HH:mm");
+            BasePanel.UpdateLayout();
+            bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
+            bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
+        }
+
+        private void UpdateSize(object sender, TaskbarSizeChangedEventArgs e)
+        {
+            BasePanel.Height = e.Size.Height;
             BasePanel.UpdateLayout();
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
