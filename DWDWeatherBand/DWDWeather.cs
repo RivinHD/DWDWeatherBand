@@ -1204,6 +1204,10 @@ namespace DWDWeatherBand
                             break;
                         }
                     }
+                    if (fittedLength >= items.Length)
+                    { 
+                        return new ItemTimed[0];
+                    }                
                     ItemTimed[] fitted = new ItemTimed[fittedLength];
                     Array.Copy(items, fitted, fittedLength);
                     return (Item[])fitted;
@@ -1229,8 +1233,12 @@ namespace DWDWeatherBand
                             fittedStart++;
                         }
                     }
+                    if (fittedLength >= items.Length)
+                    {
+                        return new ItemTimed[0];
+                    }
                     ItemTimed[] fitted = new ItemTimed[fittedLength - fittedStart];
-                    Array.Copy(items, fittedStart, fitted, 0, fittedLength);
+                    Array.Copy(items, fittedStart, fitted, 0, fittedLength - fittedStart);
                     return (Item[])fitted;
                 }),
             };
