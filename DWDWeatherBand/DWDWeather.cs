@@ -424,6 +424,10 @@ namespace DWDWeatherBand
                 }
                 selectedColumn++;
             }
+            if (selectedColumn >= timeStemps.Count())
+            {
+                return null;
+            }
             float temperature = float.NaN;
             float dewpoint = float.NaN;
             float windDirection = float.NaN;
@@ -581,6 +585,10 @@ namespace DWDWeatherBand
                 items[index] = new ItemTimed() { Time=DateTime.Parse(element.Value) };
                 index++;
             }
+            if (index >= timeStemps.Count())
+            {
+                return null;
+            }
             float[] dewpoints = new float[dataLength];
             float[] cloudCovers = new float[dataLength];
             float[] weathers = new float[dataLength];
@@ -719,7 +727,7 @@ namespace DWDWeatherBand
             bool success = CachePoi(new Uri(DWDSettings.PoiUri, GetPoiName(stationIDMosmix)));
             if (!success)
             {
-                return new ItemTimed[0];
+                return null;
             }
 
             List<ItemTimed> values = new List<ItemTimed>();
@@ -733,7 +741,7 @@ namespace DWDWeatherBand
 
                 if (parser.EndOfData)
                 {
-                    return new ItemTimed[0];
+                    return null;
                 }
                 string[] fields = parser.ReadFields();
 
@@ -1182,7 +1190,7 @@ namespace DWDWeatherBand
             Task<Item[]>[] tasks = new Task<Item[]>[] {
                 Task.Run(() => {
                     ItemTimed[] items = GetPoisCSV();
-                    if (items.Length <= 0)
+                    if (items == null || items.Length <= 0)
                     {
                         return new ItemTimed[0];
                     }
@@ -1203,7 +1211,7 @@ namespace DWDWeatherBand
                 Task.Run(() =>
                 {   
                     ItemTimed[] items = GetMosmixData();
-                    if (items.Length <= 0)
+                    if (items == null || items.Length <= 0)
                     {
                         return new ItemTimed[0];
                     }
