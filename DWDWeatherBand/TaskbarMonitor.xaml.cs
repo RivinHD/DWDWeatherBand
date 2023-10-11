@@ -108,7 +108,18 @@ namespace DWDWeatherBand
 
         private async void TickUpdate(object sender, EventArgs e)
         {
-            await UpdateText();
+            try
+            {
+                await UpdateText();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(
+                    ex.ToString(),
+                    "Unhandled exception",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
         }
 
         private async Task UpdateText()
