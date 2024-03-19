@@ -1,23 +1,142 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using Microsoft.Win32;
+using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Reflection;
+using System.IO;
+using System.Text;
+using System.Windows.Media;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Xceed.Wpf.Toolkit;
+using static DWDWeatherBand.Settings;
 
 namespace DWDWeatherBand
 {
+    public class StandardColors : ObservableCollection<ColorItem>
+    {
+        public StandardColors() : base()
+        {
+            ColorTemplate dark = ColorTemplate.getDefaultDark();
+            Add(new ColorItem(dark.Foreground, "Dark Foreground"));
+            Add(new ColorItem(dark.DisabledForeground, "Dark DisabledForeground"));
+            Add(new ColorItem(dark.SelectedForeground, "Dark SelectedForeground"));
+            Add(new ColorItem(dark.Background, "Dark Background"));
+            Add(new ColorItem(dark.BackgroundDark, "Dark BackgroundDark"));
+            Add(new ColorItem(dark.BackgroundLight, "Dark BackgroundLight"));
+            ColorTemplate light = ColorTemplate.getDefaultLight();
+            Add(new ColorItem(light.Foreground, "Light Foreground"));
+            Add(new ColorItem(light.DisabledForeground, "Light SDisabledForeground"));
+            Add(new ColorItem(light.SelectedForeground, "Light SelectedForeground"));
+            Add(new ColorItem(light.Background, "Light Background"));
+            Add(new ColorItem(light.BackgroundDark, "Light BackgroundDark"));
+            Add(new ColorItem(light.BackgroundLight, "Light BackgroundLight"));
+        }
+    }
+
+    public class Themes : ObservableCollection<string>
+    {
+        public Themes() : base() 
+        {
+            LoadCurrentThemes();
+        }
+
+        public void LoadCurrentThemes()
+        {
+            Clear();
+            foreach (string key in LoadedProperties.Themes.Keys)
+            {
+                Add(key);
+            }
+        }
+    }
+
     static public class Settings
     {
+        public const string THEME_DARK_NAME = "Dark";
+        public const string THEME_LIGHT_NAME = "Light";
+
         public enum HowInit
         {
             Automatic,
             //City,
             GeoLocation
+        }
+
+        public class ColorTemplate
+        {
+            public Color Foreground { get; set; }
+            public Color DisabledForeground { get; set; }
+            public Color SelectedForeground { get; set; }
+            public Color Background { get; set; }
+            public Color BackgroundDark { get; set; }
+            public Color BackgroundLight { get; set; }
+            [JsonIgnore]
+            public Color BackgroundDarkLight 
+            { 
+                get 
+                {
+                    return new Color()
+                    {
+                        R = (byte)(Background.R >= 15 ? Background.R - 15 : 0),
+                        G = (byte)(Background.R >= 15 ? Background.G - 15 : 0),
+                        B = (byte)(Background.R >= 15 ? Background.B - 15 : 0),
+                        A = Background.A
+                    };
+                } 
+            }
+            [JsonIgnore]
+            public Color BackgroundTransparent50 
+            {
+                get
+                {
+                    return new Color()
+                    {
+                        R = Background.R,
+                        G = Background.G,
+                        B = Background.B,
+                        A = 127
+                    };
+                }
+            }
+
+            static public ColorTemplate getDefaultDark()
+            {
+                return new ColorTemplate()
+                {
+                    BackgroundLight = Color.FromArgb(255, 76, 76, 76),
+                    Background = Color.FromArgb(255, 62, 62, 62),
+                    BackgroundDark = Color.FromArgb(255, 33, 33, 33),
+                    Foreground = Color.FromArgb(255, 255, 255, 255),
+                    DisabledForeground = Color.FromArgb(255, 211, 211, 211),
+                    SelectedForeground = Color.FromArgb(255, 124, 223, 255)
+                };
+            }
+            static public ColorTemplate getDefaultLight()
+            {
+                return new ColorTemplate()
+                {
+                    BackgroundLight = Color.FromArgb(255, 250, 250, 250),
+                    Background = Color.FromArgb(255, 230, 230, 230),
+                    BackgroundDark = Color.FromArgb(255, 200, 200, 200),
+                    Foreground = Color.FromArgb(255, 0, 0, 0),
+                    DisabledForeground = Color.FromArgb(255, 30, 30, 30),
+                    SelectedForeground = Color.FromArgb(255, 0, 84, 197)
+                };
+            }
+
+            public ColorTemplate Copy()
+            {
+                return new ColorTemplate()
+                {
+                    Foreground = Foreground,
+                    DisabledForeground = DisabledForeground,
+                    SelectedForeground = SelectedForeground,
+                    Background = Background,
+                    BackgroundDark = BackgroundDark,
+                    BackgroundLight = BackgroundLight
+                };
+            }
+                
         }
 
         public const string FileName = "Settings.json";
@@ -30,15 +149,29 @@ namespace DWDWeatherBand
             public int UpdateIntervall { get; set; } = 10; // minutes
             public int ErrorIntervall { get; set; } = 30; // seconds
             public int HowInit { get; set; } = 0;
-            public float Longitude { get; set; } = float.NaN;
-            public float Latitude { get; set; } = float.NaN;
+            public double Longitude { get; set; } = double.NaN;
+            public double Latitude { get; set; } = double.NaN;
+
+            public bool ShowIcon { get; set; } = true;
+            public bool ShowMaxMinTemperature { get; set;} = true;
+            public bool ShowHumidity { get; set; } = true;
+            public bool ShowPrecipitation { get; set; } = true;
+            public bool ShowWindSpeed { get; set; } = true;
+
+            public string SelectedTheme { get; set; } = IsLightTheme() ? THEME_LIGHT_NAME : THEME_DARK_NAME;
+
+            public Dictionary<string, ColorTemplate> Themes { get; set; } = new Dictionary<string, ColorTemplate>()
+            {
+                { THEME_DARK_NAME, ColorTemplate.getDefaultDark() },
+                { THEME_LIGHT_NAME, ColorTemplate.getDefaultLight() }
+            };
         }
         public static Properties LoadedProperties { 
             get 
             {
                 if (_loadedProperties == null) {
                     Read();
-                }               
+                }     
                 return _loadedProperties;
             } 
         }
@@ -67,6 +200,12 @@ namespace DWDWeatherBand
             using (JsonTextReader jsonIn = new JsonTextReader(sr))
             {
                 _loadedProperties = new JsonSerializer().Deserialize<Properties>(jsonIn);
+            }
+            // Need because file exists but is empty
+            if (_loadedProperties == null)
+            {
+                _loadedProperties = new Properties();
+                Write(_loadedProperties);
             }
         }
 

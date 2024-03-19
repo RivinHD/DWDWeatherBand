@@ -1,0 +1,1093 @@
+﻿<UserControl x:Name="userControl" x:Class="DWDWeatherBand.InformationPopup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:local="clr-namespace:DWDWeatherBand"
+             mc:Ignorable="d"
+             Unloaded="WriteSettings">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <local:MoveToBorderConverter x:Key="MoveToBorderConverter"/>
+            <local:CompareVisibilityConverter x:Key="CompareVisibilityConverter"/>
+            <local:SubtractConverter x:Key="SubtractConverter"/>
+            <local:ScaleDownConverterLeft x:Key="ScaleDownConverterLeft"/>
+            <local:Themes x:Key="Themes"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <TabControl>
+        <TabItem Header="Weather" PreviewMouseLeftButtonUp="TabItem_MouseLeftButtonUp" PreviewMouseLeftButtonDown="TabItem_MouseLeftButtonDown">
+            <Grid x:Name="WeatherDisplay" Width="800" Height="750" Loaded="WeatherDisplay_Loaded" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="16"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="30"/>
+                </Grid.RowDefinitions>
+
+                <Canvas x:Name="canvasTemperaturPrecipitation" Grid.Row="0">
+                    <Grid d:Width="800" d:Height="370" x:Name="canvasPrecipitation" Width="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Margin="0,10,0,10">
+                        <!--<Rectangle Width="5" Height="100" Fill="{StaticResource BrushSelectedForegroundColor}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="-10,0,0,0" Stroke="{StaticResource BrushBackgroundColor}" StrokeThickness="0.5"/>-->
+                    </Grid>
+
+                    <Grid x:Name="gridCanvasTP" d:Width="800" d:Height="370" Width="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Margin="0,10,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Style="{StaticResource LineBold}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineBold}" />
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="3">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Grid.Row="4" VerticalAlignment="Bottom" Style="{StaticResource LineBold}" Margin="0,0,0,-0.5"/>
+                    </Grid>
+
+                    <Line x:Name="CurrentIndikatorTP" Y2="{Binding ActualHeight, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Style="{StaticResource LineBold}" X1="100" X2="100" d:Visibility="Visible" Visibility="Hidden"/>
+
+                    <Grid Margin="0,10,0,10">
+                        <Path x:Name="TemperaturGraph" d:Data="M -10,0 L -10,295 M 0,100 10,200 40,200 60,100 60,100 80,0 80.5,0 100,294.5 100.5,294.5 120,290">
+                            <Path.Stroke>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#FF7D00FF" Offset="1"/>
+                                    <GradientStop Color="#FF0027FF" Offset="0.8"/>
+                                    <GradientStop Color="#FF008FBF" Offset="0.6"/>
+                                    <GradientStop Color="#FF00B500" Offset="0.4"/>
+                                    <GradientStop Color="Yellow" Offset="0.2"/>
+                                    <GradientStop Color="Red"/>
+                                </LinearGradientBrush>
+                            </Path.Stroke>
+                        </Path>
+                    </Grid>
+
+                    <Grid d:Width="800" d:Height="370" Width="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Margin="0,10,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Temperatur &amp; Precipitation" Style="{StaticResource Transparent50}" VerticalAlignment="Top" HorizontalAlignment="Center" Padding="4,1,4,1" Margin="0,-13,0,0" FontWeight="Bold"/>
+
+                        <Label x:Name="LabelTemperatur5" Content="30 °C" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Margin="0,-9,0,0" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation5" Content="5 mm/h" Margin="0,-9,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelTemperatur4" Content="25 °C" Margin="0,-9,0,0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation4" Content="4 mm/h" Margin="0,-9,0,0" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelTemperatur3" Content="18 °C" Margin="0,-9,0,0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation3" Content="3 mm/h" Margin="0,-9,0,0" Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelTemperatur2" Content="15 °C" Margin="0,-9,0,0" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation2" Content="2 mm/h" Margin="0,-9,0,0" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelTemperatur1" Content="10 °C" Margin="0,-9,0,0" Grid.Row="4" VerticalAlignment="Top" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation1" Content="1 mm/h" Margin="0,-9,0,0" Grid.Row="4" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelTemperatur0" Content="5 °C" Grid.Row="4" VerticalAlignment="Bottom" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Margin="0,0,0,-9" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelPrecipitation0" Content="0 mm/h" Grid.Row="4" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Margin="0,0,0,-9" Style="{StaticResource Transparent50}"/>
+                    </Grid>
+                </Canvas>
+
+                <Canvas x:Name="canvasWindHumidity" Grid.Row="2">
+                    <Grid d:Width="800" d:Height="370" x:Name="canvasHumidity" Width="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasWindHumidity, Mode=OneWay}" Margin="0,10,0,10">
+                        <!--<Rectangle Width="5" Height="100" Fill="{StaticResource BrushSelectedForegroundColor}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="-10,0,0,0" Stroke="{StaticResource BrushBackgroundColor}" StrokeThickness="0.5"/>-->
+                    </Grid>
+
+                    <Grid x:Name="gridCanvasWH" d:Width="800" d:Height="370" Width="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasWindHumidity, Mode=OneWay}" Margin="0,10,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Style="{StaticResource LineBold}"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineBold}" />
+                        <Grid Grid.Row="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="3">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineBold}"/>
+                        <Grid Grid.Row="5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="1*"/>
+                            </Grid.RowDefinitions>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="1" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="2" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="3" Style="{StaticResource LineThinDotted}"/>
+                            <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" Style="{StaticResource LineThinDotted}"/>
+                        </Grid>
+
+                        <Line X2="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Grid.Row="4" VerticalAlignment="Bottom" Style="{StaticResource LineBold}" Margin="0,0,0,-0.5"/>
+                    </Grid>
+
+                    <Line x:Name="CurrentIndikatorWH" Y2="{Binding ActualHeight, ElementName=canvasWindHumidity, Mode=OneWay}" Style="{StaticResource LineBold}" X1="100" X2="100" d:Visibility="Visible" Visibility="Hidden"/>
+
+                    <Grid Margin="0,10,0,10">
+                        <Path x:Name="WindGraph" d:Data="M -10,0 L -10,295 M 0,100 10,200 40,200 60,100 60,100 80,0 80.5,0 100,294.5 100.5,294.5 120,290">
+                            <Path.Stroke>
+                                <SolidColorBrush Color="White"/>
+                            </Path.Stroke>
+                        </Path>
+                        <Path x:Name="WindMaxGraph" d:Data="M -10,0 L -10,295 M 0,100 10,200 40,200 60,100 60,100 80,0 80.5,0 100,294.5 100.5,294.5 120,290">
+                            <Path.Stroke>
+                                <SolidColorBrush Color="Red"/>
+                            </Path.Stroke>
+                        </Path>
+                    </Grid>
+
+                    <Grid d:Width="800" d:Height="370" Width="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasWindHumidity, Mode=OneWay}" Margin="0,10,0,10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Content="Wind, Gust &amp; Humidity" Style="{StaticResource Transparent50}" VerticalAlignment="Top" HorizontalAlignment="Center" Padding="4,1,4,1" Margin="0,-13,0,0" FontWeight="Bold"/>
+
+                        <Label x:Name="LabelWind5" Content="25 km/h" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Margin="0,-9,0,0" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity5" Content="100 %" Margin="0,-9,0,0" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelWind4" Content="20 km/h" Margin="0,-9,0,0" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity4" Content="80 %" Margin="0,-9,0,0" Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelWind3" Content="15 km/h" Margin="0,-9,0,0" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity3" Content="60 %" Margin="0,-9,0,0" Grid.Row="2" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelWind2" Content="10 km/h" Margin="0,-9,0,0" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity2" Content="40 %" Margin="0,-9,0,0" Grid.Row="3" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelWind1" Content="5 km/h" Margin="0,-9,0,0" Grid.Row="4" VerticalAlignment="Top" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity1" Content="20 %" Margin="0,-9,0,0" Grid.Row="4" VerticalAlignment="Top" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Style="{StaticResource Transparent50}"/>
+
+                        <Label x:Name="LabelWind0" Content="0 km/h" Grid.Row="4" VerticalAlignment="Bottom" HorizontalAlignment="Left" Padding="4,1,4,1" Height="18" Margin="0,0,0,-9" Style="{StaticResource Transparent50}"/>
+                        <Label x:Name="LabelHumidity0" Content="0 %" Grid.Row="4" VerticalAlignment="Bottom" HorizontalAlignment="Right" Padding="4,1,4,1" Height="18" Margin="0,0,0,-9" Style="{StaticResource Transparent50}"/>
+                    </Grid>
+                </Canvas>
+
+                <Grid x:Name="PrecipitationProbability" Grid.Row="1" VerticalAlignment="Top">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" x:Name="PrecipitationProbability0" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left"/>
+                    <Label Grid.Column="1" x:Name="PrecipitationProbability1" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="2" x:Name="PrecipitationProbability2" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="3" x:Name="PrecipitationProbability3" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="4" x:Name="PrecipitationProbability4" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="5" x:Name="PrecipitationProbability5" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="6" x:Name="PrecipitationProbability6" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="7" x:Name="PrecipitationProbability7" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="8" x:Name="PrecipitationProbability8" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="9" x:Name="PrecipitationProbability9" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="10" x:Name="PrecipitationProbability10" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="11" x:Name="PrecipitationProbability11" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="12" x:Name="PrecipitationProbability12" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="13" x:Name="PrecipitationProbability13" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="14" x:Name="PrecipitationProbability14" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="15" x:Name="PrecipitationProbability15" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="16" x:Name="PrecipitationProbability16" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="17" x:Name="PrecipitationProbability17" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="18" x:Name="PrecipitationProbability18" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="19" x:Name="PrecipitationProbability19" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="20" x:Name="PrecipitationProbability20" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="21" x:Name="PrecipitationProbability21" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="22" x:Name="PrecipitationProbability22" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="23" x:Name="PrecipitationProbability23" Content="15 %" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                    <Label Grid.Column="23" x:Name="PrecipitationProbability24" Content="15" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Right"/>
+                </Grid>
+
+                <Grid Grid.Row="3" VerticalAlignment="Top"  Margin="{Binding ActualWidth, ConverterParameter=25, Converter={StaticResource MoveToBorderConverter}, ElementName=canvasWindHumidity, Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image x:Name="WindImage0" Grid.Column="0" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation0" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage1" Grid.Column="1" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation1" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage2" Grid.Column="2" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation2" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage3" Grid.Column="3" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation3" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage4" Grid.Column="4" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation4" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage5" Grid.Column="5" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation5" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage6" Grid.Column="6" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation6" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage7" Grid.Column="7" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation7" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage8" Grid.Column="8" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation8" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage9" Grid.Column="9" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation9" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage10" Grid.Column="10" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation10" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage11" Grid.Column="11" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation11" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage12" Grid.Column="12" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation12" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage13" Grid.Column="13" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation13" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage14" Grid.Column="14" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation14" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage15" Grid.Column="15" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation15" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage16" Grid.Column="16" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation16" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage17" Grid.Column="17" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation17" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage18" Grid.Column="18" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation18" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage19" Grid.Column="19" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation19" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage20" Grid.Column="20" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation20" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage21" Grid.Column="21" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation21" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage22" Grid.Column="22" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation22" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage23" Grid.Column="23" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation23" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                    <Image x:Name="WindImage24" Grid.Column="24" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                        <Image.RenderTransform>
+                            <RotateTransform x:Name="WindImageRotation24" Angle="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                </Grid>
+
+                <StackPanel VerticalAlignment="Center" Height="56" Grid.RowSpan="4">
+                    <Label x:Name="LoadingLabel" Content="Loading..." Style="{StaticResource Transparent50}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <Canvas x:Name="timeCanvas" Grid.Row="4">
+                    <Grid Width="{Binding ActualWidth, ElementName=timeCanvas, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=timeCanvas, Mode=OneWay}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime0" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="1">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime1" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="2">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime2" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="3">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime3" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="4">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime4" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="5">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime5" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="6">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime6" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="7">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime7" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="8">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime8" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="9">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime9" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="10">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime10" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="11">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime11" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="12">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime12" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="13">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime13" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="14">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime14" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="15">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime15" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="16">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime16" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="17">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime17" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="18">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime18" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="19">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime19" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="20">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime20" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="21">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime21" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="22">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime22" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Grid Grid.Column="23">
+                            <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}"  HorizontalAlignment="Left" Style="{StaticResource LineBold}"/>
+                            <Label x:Name="LabelTime23" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Left" Margin="{Binding ActualWidth, ConverterParameter=-2, Converter={StaticResource ScaleDownConverterLeft}, Mode=OneWay, RelativeSource={RelativeSource Self}}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="1" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="2" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                                <Line Y2="{Binding ActualHeight, ConverterParameter=23, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="3" HorizontalAlignment="Left" Style="{StaticResource LineThin}"/>
+                            </Grid>
+                        </Grid>
+
+                        <Line Y2="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=timeCanvas, Mode=OneWay}" Grid.Column="23" HorizontalAlignment="Right" Style="{StaticResource LineBold}" Margin="0,0,0,-0.5"/>
+                        <Label x:Name="LabelTime24" Content="00" VerticalAlignment="Bottom" Padding="0,0,0,0" Height="20" Style="{StaticResource Transparent}" HorizontalAlignment="Right" Grid.Column="23"/>
+                    </Grid>
+                </Canvas>
+
+                <Grid Grid.Row="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Label Content="Time" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                        <Label x:Name="CurrentTime" Content="14:45" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Label Content="Temperatur" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                        <Label x:Name="CurrentTempratur" Content="23 °C" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Label Content="Precipitation" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                        <Label x:Name="CurrentPrecipitation" Content="1 mm/h" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                        <Label x:Name="CurrentPrecipitationProbability" Content="0 %" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Label Content="Humidity" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                        <Label x:Name="CurrentHumidity" Content="85 %" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Image x:Name="WindImage" Margin="0,5,2,5" Source="/DWDWeatherBand;component/Resources/Wind.png" RenderTransformOrigin="0.5,0.5" IsHitTestVisible="False">
+                            <Image.RenderTransform>
+                                <RotateTransform x:Name="WindImageRotation" Angle="0"/>
+                            </Image.RenderTransform>
+                        </Image>
+                        <Label Content="Wind" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+                        <Label x:Name="CurrentWind" Content="15 - 100 km/h" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Grid.Column="1"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid x:Name="InputPanel" Background="Transparent" PreviewMouseRightButtonDown="Indikator_MouseRightButtonDown" PreviewMouseLeftButtonDown="Indikator_MouseLeftButtonDown" Grid.RowSpan="5" PreviewMouseMove="Indikator_MouseMove"/>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Settings" PreviewMouseLeftButtonUp="TabItem_MouseLeftButtonUp" PreviewMouseLeftButtonDown="TabItem_MouseLeftButtonDown" Loaded="Settings_Loaded">
+            <StackPanel MinWidth="280">
+                <Expander Header="General" IsExpanded="True">
+                    <StackPanel>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Font" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <ComboBox x:Name="FontChooser" HorizontalAlignment="Right" VerticalAlignment="Center" Width="160" Padding="2,2,2,2" VerticalContentAlignment="Center" Margin="0,0,5,0" ItemsSource="{Binding Source={x:Static Fonts.SystemFontFamilies}}" SelectedValue="{Binding Path=Default.FontFamily}" SelectedValuePath="Source" SelectionChanged="FontChooser_SelectionChanged" StaysOpenOnEdit="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                <ComboBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel />
+                                    </ItemsPanelTemplate>
+                                </ComboBox.ItemsPanel>
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontFamily="{Binding}" VerticalAlignment="Center" TextWrapping="Wrap" Height="18" Padding="0,2,0,2"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Update Intervall" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <TextBox x:Name="UpdateIntervall" HorizontalAlignment="Right" TextWrapping="Wrap" Text="60 seconds" Width="160" VerticalAlignment="Center" Padding="2,2,2,2" Margin="0,0,5,0" LostFocus="UpdateIntervall_TextChanged" PreviewKeyDown="UpdateIntervall_PreviewKeyDown"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Error Intervall" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <TextBox x:Name="ErrorIntervall" HorizontalAlignment="Right" TextWrapping="Wrap" Text="5 seconds" Width="160" VerticalAlignment="Center" Padding="2,2,2,2" Margin="0,0,5,0" LostFocus="ErrorIntervall_TextChanged" PreviewKeyDown="ErrorIntervall_PreviewKeyDown"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="How Init" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <ComboBox x:Name="HowInit" HorizontalAlignment="Right" VerticalAlignment="Center" SelectedIndex="0" SelectedValuePath="Content" Width="160" Padding="2,2,2,2" Margin="0,0,5,0" StaysOpenOnEdit="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" SelectionChanged="HowInit_SelectionChanged">
+                                <ComboBoxItem>Automatic</ComboBoxItem>
+                                <ComboBoxItem>GeoLocation</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left" Visibility="{Binding SelectedValue, ConverterParameter=GeoLocation, Converter={StaticResource CompareVisibilityConverter}, ElementName=HowInit}">
+                            <Label Content="Latitude" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <TextBox x:Name="Latitude" HorizontalAlignment="Right" TextWrapping="Wrap" Text="52.5200" Width="160" VerticalAlignment="Center" Padding="2,2,2,2" Margin="0,0,5,0" LostFocus="Latitude_TextChanged" PreviewKeyDown="Latitude_PreviewKeyDown"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left" Visibility="{Binding SelectedValue, ConverterParameter=GeoLocation, Converter={StaticResource CompareVisibilityConverter}, ElementName=HowInit}">
+                            <Label Content="Longitude" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <TextBox x:Name="Longitude" HorizontalAlignment="Right" TextWrapping="Wrap" Text="13.4050" Width="160" VerticalAlignment="Center" Padding="2,2,2,2" Margin="0,0,5,0" LostFocus="Longitude_TextChanged" PreviewKeyDown="Longitude_PreviewKeyDown"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Taskbar Configuration">
+                    <StackPanel>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Show Icon" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Show Max/Min Temperature" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Show Humidity" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Show Precipitation" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                        </Grid>
+                        <Grid MinWidth="280" HorizontalAlignment="Left">
+                            <Label Content="Show Wind speed" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+                <Expander Header="Theme">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox x:Name="ThemeSelector" MinWidth="200" ItemsSource="{Binding Source={StaticResource Themes}}" SelectionChanged="ThemeSelector_SelectionChanged" LostFocus="ThemeSelector_TextChanged" PreviewKeyDown="ThemeSelector_PreviewKeyDown" DropDownOpened="ThemeSelector_TextChanged"/>
+                            <Button x:Name="ThemeNew" Content="New Theme" Click="ThemeNew_Click"/>
+                            <Button x:Name="ThemeRemove" Content="Remove" Click="ThemeRemove_Click"/>
+                        </StackPanel>
+                        <Grid MinWidth="280">
+                            <Label Content="Foreground"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorForeground" HorizontalAlignment="Right" ShowDropDownButton="True" Closed="ColorForeground_Closed"/>
+                        </Grid>
+                        <Grid MinWidth="280">
+                            <Label Content="DisabledForeground"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorDisabledForeground" HorizontalAlignment="Right" Closed="ColorDisabledForeground_Closed"/>
+                        </Grid>
+                        <Grid MinWidth="280">
+                            <Label Content="SelectedForeground"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorSelectedForeground" HorizontalAlignment="Right" Closed="ColorSelectedForeground_Closed"/>
+                        </Grid>
+                        <Grid MinWidth="280">
+                            <Label Content="Background"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorBackground" HorizontalAlignment="Right" Closed="ColorBackground_Closed"/>
+                        </Grid>
+                        <Grid MinWidth="280">
+                            <Label Content="BackgroundDark"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorBackgroundDark" HorizontalAlignment="Right" Closed="ColorBackgroundDark_Closed"/>
+                        </Grid>
+                        <Grid MinWidth="280">
+                            <Label Content="BackgroundLight"/>
+                            <xctk:ColorPicker Width="100" x:Name="ColorBackgroundLight" HorizontalAlignment="Right" Closed="ColorBackgroundLight_Closed"/>
+                        </Grid>
+                    </StackPanel>
+                </Expander>
+                <Button x:Name="restoreDefault" Content="Restore Default" Margin="10,2,5,5" Click="RestoreDefault_Click"/>
+            </StackPanel>
+        </TabItem>
+    </TabControl>
+</UserControl>

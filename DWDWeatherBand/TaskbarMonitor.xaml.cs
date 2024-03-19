@@ -22,6 +22,8 @@ using System.Threading;
 using Timer = System.Windows.Forms.Timer;
 using System.Windows.Threading;
 using System.Globalization;
+using System.Windows.Interop;
+using System.Runtime.InteropServices;
 
 namespace DWDWeatherBand
 {
@@ -31,83 +33,132 @@ namespace DWDWeatherBand
     public partial class TaskbarMonitor : UserControl
     {
         CSDeskBandWpf bandWin;
-        DWDWeather weather;
         DispatcherTimer updateTimer;
         DispatcherTimer errorTimer;
         TaskbarInfo taskbarInfo;
+        bool isDisposed = false;
+        HwndSource source;
+        double currentDpi;
         public TaskbarMonitor(CSDeskBandWpf w)
         {
             InitializeComponent();
             bandWin = w;
+            updateTimer = new DispatcherTimer();
+            errorTimer = new DispatcherTimer();
+            Dispatcher.ShutdownStarted += new EventHandler(Dispose);
         }
 #if DEBUG
         public TaskbarMonitor()
         {
             InitializeComponent();
             bandWin = new Deskband(false);
+            updateTimer = new DispatcherTimer();
+            errorTimer = new DispatcherTimer();
         }
 #endif
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+            if (isDisposed)
+            {
+                return;
+            }
+
+            // This UserControl is used in the Toolbar therefore needs a HwndSourceHook to adjust to Dpi Changes
+            source = PresentationSource.FromVisual(this) as HwndSource;
+            if (source != null)
+            {
+#if DEBUG
+                System.Windows.Forms.MessageBox.Show(
+                    $"Got the HwndSource",
+                    "HwndSource",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+#endif
+                source.AddHook(HwndSourceHook);
+                currentDpi = GetDpiForWindow(source.Handle);
+            }
             Settings.Properties properties = Settings.LoadedProperties;
             taskbarInfo = new TaskbarInfo();
             FontFamily font = new FontFamily(properties.Font);
 
-            taskbarInfo.TaskbarSizeChanged += new EventHandler<TaskbarSizeChangedEventArgs>(UpdateSize);
             Resources["SelectedFont"] = font;
 
-            BasePanel.Height = taskbarInfo.Size.Height;
-            BasePanel.MaxHeight = taskbarInfo.Size.Height;
             BasePanel.MinHeight = taskbarInfo.Size.Height;
+            BasePanel.MaxHeight = taskbarInfo.Size.Height;
             BasePanel.UpdateLayout();
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), taskbarInfo.Size.Height);
             SetDefaulText();
 
-            updateTimer = new DispatcherTimer {
-                Interval = TimeSpan.FromMinutes(properties.UpdateIntervall)
-            };
+            updateTimer.Interval = TimeSpan.FromMinutes(properties.UpdateIntervall);
 #if DEBUG
             updateTimer.Interval = TimeSpan.FromMinutes(1);
 #endif
             updateTimer.Tick += new EventHandler(TickUpdate);
 
-            errorTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(properties.ErrorIntervall)
-            };
+            errorTimer.Interval = TimeSpan.FromSeconds(properties.ErrorIntervall);
             errorTimer.Tick += new EventHandler(TickUpdate);
             await Init();
         }
 
+        // requires win 10 anniversary
+        [DllImport("user32")]
+        public static extern uint GetDpiForWindow(IntPtr hWnd);
+        private IntPtr HwndSourceHook(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        {
+            const int WM_DPICHANGED_AFTERPARENT = 0x02E3;
+
+            switch (msg)
+            {
+                case WM_DPICHANGED_AFTERPARENT:
+                    // Used for the toolbar since we don't receive WM_DPICHANGED messages there.
+                    UpdateSize();
+                    handled = true;
+                    break;
+            }
+
+            return IntPtr.Zero;
+        }
+
         private async Task Init()
         {
+            if (isDisposed)
+            {
+                return;
+            }
             await Task.Run(() =>
             {
+                if (isDisposed)
+                {
+                    return;
+                }
                 Settings.Properties properties = Settings.LoadedProperties;
                 switch (properties.HowInit)
                 {
-                    case (int)Settings.HowInit.Automatic:
-                        weather = new DWDWeather();
-                        break;
                     //case (int)Settings.HowInit.City:
-                    //    weather = new DWDWeather();
+                    //    DWDWeather.Init(city);
                     //    break;
                     case (int)Settings.HowInit.GeoLocation:
-                        weather = new DWDWeather(properties.Latitude, properties.Longitude);
+                        DWDWeather.Init(properties.Latitude, properties.Longitude);
                         break;
 
-                    default:
-                        weather = new DWDWeather();
+                    default:  // also used for Settings.HowInit.Automatic
+                        DWDWeather.Init();
                         break;
                 }
             });
+
+            CurrentStation.Content = DWDWeather.StationName;
 
             await UpdateText();
         }
 
         private async void TickUpdate(object sender, EventArgs e)
         {
+            if (isDisposed)
+            {
+                return;
+            }
             try
             {
                 await UpdateText();
@@ -124,9 +175,13 @@ namespace DWDWeatherBand
 
         private async Task UpdateText()
         {
+            if (isDisposed)
+            {
+                return;
+            }
             updateTimer.Stop();
             errorTimer.Stop();
-            bool success = await weather.UpdateNow() && await weather.UpdateHighLow();
+            bool success = await DWDWeather.UpdateNow() && await DWDWeather.UpdateHighLow();
 #if DEBUG
             System.Windows.Forms.MessageBox.Show(
                 $"Update Text: {success}",
@@ -134,9 +189,13 @@ namespace DWDWeatherBand
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
 #endif
+            if (isDisposed)
+            {
+                return;
+            }
             if (success)
             {
-                SetText(weather.Now, weather.DailyLow.Temperature, weather.DailyHigh.Temperature);
+                SetText(DWDWeather.Now, DWDWeather.DailyLow.Temperature, DWDWeather.DailyHigh.Temperature);
                 updateTimer.Start();
             }
             else
@@ -187,22 +246,65 @@ namespace DWDWeatherBand
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
         }
 
-        private void UpdateSize(object sender, TaskbarSizeChangedEventArgs e)
+        private void UpdateSize()
         {
-            BasePanel.Height = e.Size.Height;
+            if (source == null)
+            {
+                return;
+            }
+            double newDpi = GetDpiForWindow(source.Handle);
+            if (newDpi == currentDpi)
+            {
+                return;
+            }
+            double scale = newDpi / currentDpi;
+            BasePanel.MinHeight *= scale;
+            BasePanel.MaxHeight *= scale;
             BasePanel.UpdateLayout();
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
         }
+        private void BasePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (ShowUpdateTime.IsOpen || !DWDWeather.FinishedInit)
+            {
+                return;
+            }
+            ShowInformation.IsOpen = true;
+        }
+
+        private void BasePanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (ShowUpdateTime.IsOpen || !DWDWeather.FinishedInit)
+            {
+                return;
+            }
+            ShowInformation.IsOpen = true;
+        }
 
         private void BasePanel_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ShowInformation.IsOpen = true;
+            if (ShowInformation.IsOpen || !DWDWeather.FinishedInit)
+            {
+                return;
+            }
+            ShowUpdateTime.IsOpen = true;
         }
 
         private void BasePanel_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            ShowInformation.IsOpen = false;
+            if (ShowInformation.IsOpen || !DWDWeather.FinishedInit)
+            {
+                return;
+            }
+            ShowUpdateTime.IsOpen = false;
+        }
+
+        protected void Dispose(object sender, EventArgs e)
+        {
+            isDisposed = true;
+            updateTimer.Stop();
+            errorTimer.Stop();
         }
     }
 }

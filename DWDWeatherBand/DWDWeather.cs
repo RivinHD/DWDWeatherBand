@@ -1,39 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Device.Location;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Windows.Markup;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-using static DWDWeatherBand.Settings;
-using static System.Net.WebRequestMethods;
-using System.Device.Location;
-using Newtonsoft.Json;
-using Microsoft.VisualBasic.FileIO;
-using System.Windows.Controls;
-using System.IO.Compression;
-using System.Xml.Linq;
-using System.Security.Cryptography;
-using System.ComponentModel.Design;
-using System.Security.Policy;
-using TimeSpan = System.TimeSpan;
-using Newtonsoft.Json.Linq;
-using System.Threading;
-using System.Runtime.InteropServices;
-using System.Security;
-using System.IO.Pipes;
-using CSDeskBand;
-using Microsoft.VisualBasic;
 using System.Windows.Forms;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-using HtmlAgilityPack;
+using Newtonsoft.Json;
+using TimeSpan = System.TimeSpan;
 
 namespace DWDWeatherBand
 {
@@ -92,6 +69,16 @@ namespace DWDWeatherBand
 
     public static class DWDSettings
     {
+        // Current Information
+        // First use WarnwetterAWSUri with currrent_measurement_{stationId}.json
+        // complete with PoiUri, then MosmixLUri
+
+        // Forcast Information
+        // First use WarnwetterUri with stationOverviewExtended?stationIds={stationId}
+        // complete with MosmixLUri
+
+        // History Information use HistoryBaseUri
+
         // Help Information from https://www.dwd.de/DE/leistungen/opendata/hilfe.html?nn=495490
         public static string[] Resolutions = new string[] { "10_minutes", "hourly", "daily", "monthly" };
         public static string[] DataTypes = new string[] { "air_temperature", "precipitation", "wind", "solar" };
@@ -116,20 +103,7 @@ namespace DWDWeatherBand
         public static Uri PoiUri = new Uri("https://opendata.dwd.de/weather/weather_reports/poi/"); // uses Momix station_id
         // https://www.dwd.de/DE/leistungen/opendata/help/schluessel_datenformate/csv/poi_present_weather_zuordnung_pdf.pdf?__blob=publicationFile&v=5
 
-        // Current Information
-        // First use WarnwetterAWSUri with currrent_measurement_{stationId}.json
-        // complete with PoiUri, then MosmixLUri
-
-        // Forcast Information
-        // First use WarnwetterUri with stationOverviewExtended?stationIds={stationId}
-        // complete with MosmixLUri
-
-        // History Information use HistoryBaseUri
-
-
         public static Uri GeoLocationAPI = new Uri("http://www.geoplugin.net/json.gp");
-
-
     }
 
     public static class JsonCasts
@@ -152,7 +126,7 @@ namespace DWDWeatherBand
         }
     }
 
-    public class DWDWeather
+    public static class DWDWeather
     {
         private class CustomeWebClient : WebClient
         {
@@ -164,6 +138,10 @@ namespace DWDWeatherBand
                 return w;
             }
         }
+
+        private static Loader.ILoader LoaderMosmix = new Loader.Mosmix();
+        private static Loader.ILoader LoaderPoi = new Loader.Poi();
+
         #region Properties
         public class Item
         {
@@ -174,14 +152,20 @@ namespace DWDWeatherBand
             public float WindDirection = float.NaN;
             public float Wind = float.NaN;
             public float MaxWind = float.NaN;
-        }
 
-        public class ItemExtended : Item
-        {
-            public float Pressure = float.NaN;
-            public float Dewpoint = float.NaN;
-            public float Sunshine = float.NaN;
-            public float CloudCover = float.NaN;
+            public static Item Copy(Item item)
+            {
+                return new Item
+                {
+                    Icon = item.Icon,
+                    Temperature = item.Temperature,
+                    Precipitation = item.Precipitation,
+                    Humidity = item.Humidity,
+                    Wind = item.Wind,
+                    MaxWind = item.MaxWind,
+                    WindDirection = item.WindDirection,
+                };
+            }
         }
 
         public class ItemTimed : Item
@@ -189,58 +173,53 @@ namespace DWDWeatherBand
             public DateTime Time;
         }
 
-        private string name;
-        private string stationIDMosmix;
-        private string[,] stationIDHistory = new string[DWDSettings.Resolutions.Length, DWDSettings.DataTypes.Length];
-        private bool geoLocationSet = false;
-        private float latitude;
-        private float longitude;
-
-        private KeyValuePair<DateTime, byte[]> cacheMosmix;
-        private KeyValuePair<DateTime, byte[]> cachePoi;
-        private KeyValuePair<DateTime, JsonCasts.CurrentMeasurement> cacheAwsCurrent;
-        private KeyValuePair<DateTime, byte[]> cacheAwsStation;
-        private KeyValuePair<DateTime, byte[]>[,] cacheHistory = new KeyValuePair<DateTime, byte[]>[DWDSettings.Resolutions.Length, DWDSettings.DataTypes.Length];
-
-        private Item _now;
-        private Item _dailyHigh;
-        private Item _dailyLow;
-
-        public Item Now { get { return _now; } }
-        public Item DailyHigh { get { return _dailyHigh; } }
-        public Item DailyLow { get { return _dailyLow; } }
-        #endregion
-
-        #region Constructors
-        public DWDWeather()
+        public class ItemTimedForcast : ItemTimed
         {
-            Init();
-#if DEBUG
-            System.Windows.Forms.MessageBox.Show(
-                $"{stationIDMosmix} {name}",
-                "StationIDMosmix",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-#endif
+            public float PrecipitationProbability = float.NaN;
         }
 
-        //public DWDWeather(string City)
-        //{
-        //}
-
-        public DWDWeather(float Latitude, float Longitude)
+        public class CacheItem : ItemTimedForcast
         {
-            latitude = Latitude;
-            longitude = Longitude;
-            geoLocationSet = true;
-            Init();
+            public float Dewpoint = float.NaN;
+            public float CloudCover = float.NaN;
+            public float Weather = float.NaN;
         }
+
+        private static string name;
+        private static string stationIDMosmix;
+        private static string[,] stationIDHistory = new string[DWDSettings.Resolutions.Length, DWDSettings.DataTypes.Length];
+        private static bool geoLocationSet = false;
+        private static double latitude;
+        private static double longitude;
+
+        private static KeyValuePair<DateTime, CacheItem[]> cacheMosmix;
+        private static KeyValuePair<DateTime, CacheItem[]> cachePoi;
+        private static KeyValuePair<DateTime, JsonCasts.CurrentMeasurement> cacheAwsCurrent;
+        private static KeyValuePair<DateTime, CacheItem[]> cacheAwsStation;
+        private static KeyValuePair<DateTime, CacheItem[]>[,] cacheHistory = new KeyValuePair<DateTime, CacheItem[]>[DWDSettings.Resolutions.Length, DWDSettings.DataTypes.Length];
+
+        private static Item _now;
+        private static Item _dailyHigh;
+        private static Item _dailyLow;
+        private static Item _absoluteHigh;
+        private static Item _absoluteLow;
+        private static ItemTimedForcast[] _forcast;
+        private static bool _finishedInit = false;
+
+        public static Item Now { get { return _now; } }
+        public static Item DailyHigh { get { return _dailyHigh; } }
+        public static Item DailyLow { get { return _dailyLow; } }
+        public static Item AbsoluteHigh { get { return _absoluteHigh; } }
+        public static Item AbsoluteLow { get { return _absoluteLow; } }
+        public static ItemTimedForcast[] Forcast { get { return _forcast; } }
+        public static bool FinishedInit { get { return _finishedInit; } }
+        public static string StationName { get { return name; } }
         #endregion
 
         #region private
 
         #region Mosmix
-        private string GetMosmixStationFromGeoPosition(out string Name)
+        private static string GetMosmixStationFromGeoPosition(out string Name)
         {
             Name = default; 
             ServicePointManager.Expect100Continue = true;
@@ -251,7 +230,7 @@ namespace DWDWeatherBand
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(DWDSettings.MosmixStaionsUri);
             request.Method = "GET";
             request.Timeout = 1000;
-            Stack<KeyValuePair<string, string>> matching = new Stack<KeyValuePair<string, string>>();
+            KeyValuePair<string, string> closest = new KeyValuePair<string, string>();
             try
             {
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
@@ -261,27 +240,31 @@ namespace DWDWeatherBand
                     {
                         return null;
                     }
-                    StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                    string line;
-                    float latitudeDelta = float.MaxValue;
-                    float longitudeDelta = float.MaxValue;
-                    while ((line = reader.ReadLine()) != null)
+                    using (BufferedStream bufferedStream = new BufferedStream(stream))
+                    using (StreamReader reader = new StreamReader(bufferedStream, Encoding.UTF8))
                     {
-                        //Groups 1=Name  2=StaionID  3=Latitude  4=Longitude
-                        Match parsed = DWDSettings.MosmixStationRegex.Match(line);
-                        if (!parsed.Success)
+                        string line;
+                        double latitudeDelta = double.MaxValue;
+                        double longitudeDelta = double.MaxValue;
+                        while ((line = reader.ReadLine()) != null)
                         {
-                            continue;
-                        }
-                        float lat = float.Parse(parsed.Groups[3].Value, CultureInfo.InvariantCulture);
-                        float lon = float.Parse(parsed.Groups[4].Value, CultureInfo.InvariantCulture);
-                        float deltaLat = (latitude - lat) * (latitude - lat);
-                        float deltaLon = (longitude - lon) * (longitude - lon);
-                        if (deltaLat + deltaLon < latitudeDelta + longitudeDelta)
-                        {
-                            matching.Push(new KeyValuePair<string, string>(parsed.Groups[1].Value, parsed.Groups[2].Value));
-                            latitudeDelta = deltaLat;
-                            longitudeDelta = deltaLon;
+                            //Groups 1=Name  2=StaionID  3=Latitude  4=Longitude
+                            Match parsed = DWDSettings.MosmixStationRegex.Match(line);
+                            if (!parsed.Success)
+                            {
+                                continue;
+                            }
+                            float lat = float.Parse(parsed.Groups[3].Value, CultureInfo.InvariantCulture);
+                            float lon = float.Parse(parsed.Groups[4].Value, CultureInfo.InvariantCulture);
+                            double deltaLat = (latitude - lat) * (latitude - lat);
+                            double deltaLon = (longitude - lon) * (longitude - lon);
+                            string value = parsed.Groups[2].Value;
+                            if (deltaLat + deltaLon < latitudeDelta + longitudeDelta && UriIsOK(new Uri(DWDSettings.PoiUri, GetPoiName(value))) && UriIsOK(new Uri(DWDSettings.MosmixLUri, value)))
+                            {
+                                closest = new KeyValuePair<string, string>(parsed.Groups[1].Value, value);
+                                latitudeDelta = deltaLat;
+                                longitudeDelta = deltaLon;
+                            }
                         }
                     }
                 }
@@ -298,32 +281,20 @@ namespace DWDWeatherBand
                 return null;
             }
 
-            while (matching.Count > 0)
+            if (closest.Value == null)
             {
-                KeyValuePair<string, string> item = matching.Pop();
-                if (UriIsOK(new Uri(DWDSettings.PoiUri, GetPoiName(item.Value))) && UriIsOK(new Uri(DWDSettings.MosmixLUri, item.Value)))
-                {
-#if DEBUG
-                    Console.WriteLine("Finished Get Station ID");
-#endif
-                    Name = item.Key;
-                    return item.Value;
-                }
+                return null;
             }
-#if DEBUG
-            System.Windows.Forms.MessageBox.Show(
-                $"URL not OK {latitude}, {longitude}",
-                "URL not OK",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-#endif
-            return null;
+
+            Console.WriteLine("Finished Get Station ID");
+            Name = closest.Key;
+            return closest.Value;
         }
 
-        private bool CacheMosmix(Uri uri)
+        private static bool CacheMosmix(Uri uri)
         {
-            KeyValuePair<DateTime, byte[]> cache = CacheData(uri, cacheMosmix, new TimeSpan(1, 0, 0));
-            if (cache.Equals(default(KeyValuePair<DateTime, byte[]>)))
+            KeyValuePair<DateTime, CacheItem[]> cache = CacheData(LoaderMosmix, uri, cacheMosmix, new TimeSpan(1, 0, 0));
+            if (cache.Equals(default(KeyValuePair<DateTime, CacheItem[]>)))
             {
                 return false;
             }
@@ -331,61 +302,7 @@ namespace DWDWeatherBand
             return true;
         }
 
-        private WeatherIcon GetMosmixIcon(int weather, float cloudCover)
-        {
-            WeatherIcon icon = WeatherIcon.None;
-            switch (cloudCover)
-            {
-                case float v when v < 30:
-                    icon = WeatherIcon.Wolkenlos;
-                    break;
-                case float v when v < 70:
-                    icon = WeatherIcon.Bewoelkt_leicht;
-                    break;
-                case float v when v < 95:
-                    icon = WeatherIcon.Bewoelkt_schwer;
-                    break;
-                case float v when v >= 95:
-                    icon = WeatherIcon.Bedeckt;
-                    break;
-                default:
-                    break;
-            }
-            switch (weather)
-            {
-                case 95: // Gewitter
-                    //Fehlt: Gewitter_Hagel_leicht, Gewitter_Hagel_schwer, Gewitter_leicht, Gewitter_mittel, Gewitter_schwer
-                    icon = WeatherIcon.Gewitter_mittel;
-                    break;
-                case 57: icon = WeatherIcon.Regen_gefrierend_schwer; break;
-                case 56: icon = WeatherIcon.Regen_gefrierend_leicht; break;
-                case 67: icon = WeatherIcon.Regen_gefrierend_schwer; break;
-                case 66: icon = WeatherIcon.Regen_gefrierend_leicht; break;
-                case 86: icon = WeatherIcon.Schneeschauer_schwer; break;
-                case 85: icon = WeatherIcon.Schneeschauer_leicht; break;
-                case 84: icon = WeatherIcon.Schneeregenschauer_schwer; break;
-                case 83: icon = WeatherIcon.Schneeregenschauer_leicht; break;
-                case 82: icon = WeatherIcon.Regenschauer_schwer; break;
-                case 81: case 80: icon = WeatherIcon.Regenschauer_leicht; break;
-                case 75: icon = WeatherIcon.Schneefall_schwer; break;
-                case 73: icon = WeatherIcon.Schneefall_mittel; break;
-                case 71: icon = WeatherIcon.Schneefall_leicht; break;
-                case 69: icon = WeatherIcon.Schneeregen_schwer; break;
-                case 68: icon = WeatherIcon.Schneeregen_leicht; break;
-                case 55: case 65: icon = WeatherIcon.Regen_schwer; break;
-                case 53: case 63: icon = WeatherIcon.Regen_mittel; break;
-                case 51: case 61: icon = WeatherIcon.Regen_leicht; break;
-                case 49: icon = WeatherIcon.Nebel_gefrierend; break;
-                case 45: icon = WeatherIcon.Nebel; break;
-                default:
-                    break;
-            }
-            // Fehlt Grauperlschauer, Hagel_leicht, Hagel_schwer, Glatteis
-            // Hagel ist schwer zu Vorhersagen: https://www.dwd.de/DE/klimaumwelt/klimaforschung/spez_themen/hagel/hagel_node.html
-            return icon;
-        }
-
-        private Item GetMosmixDataNow()
+        private static Item GetMosmixDataNow()
         {
             bool success = CacheMosmix(new Uri(DWDSettings.MosmixLUri, $"{stationIDMosmix}/kml/MOSMIX_L_LATEST_{stationIDMosmix}.kmz"));
             if (!success)
@@ -393,162 +310,43 @@ namespace DWDWeatherBand
                 return null;
             }
 
-            XDocument doc;
-            using (MemoryStream response = new MemoryStream(cacheMosmix.Value))
-            using (ZipArchive archive = new ZipArchive(response, ZipArchiveMode.Read))
-            {
-                if (archive.Entries.Count <= 0)
-                {
-                    return null;
-                }
-                using (StreamReader stream = new StreamReader(archive.Entries[0].Open()))
-                {
-                    doc = XDocument.Load(stream);
-                }
-            }
+            CacheItem[] data = cacheMosmix.Value;
 
-            XNamespace kml = doc.Root.GetNamespaceOfPrefix("kml");
-            XNamespace dwd = doc.Root.GetNamespaceOfPrefix("dwd");
-            XElement document = doc.Root.Element(kml + "Document");
-            XElement defintion = document.Element(kml + "ExtendedData").Element(dwd + "ProductDefinition");
-            string defaultSign = defintion.Element(dwd + "FormatCfg").Element(dwd + "DefaultUndefSign").Value;
-            IEnumerable<XElement> timeStemps = defintion.Element(dwd + "ForecastTimeSteps").Elements(dwd + "TimeStep");
             DateTime now = DateTime.Now;
             int selectedColumn = 0;
-            foreach (XElement element in timeStemps)
+            foreach (CacheItem item in data)
             {
-                DateTime time = DateTime.Parse(element.Value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+                DateTime time = item.Time;
                 if (time.Hour == now.Hour && time.Year == now.Year && time.DayOfYear == now.DayOfYear)
                 {
                     break;
                 }
                 selectedColumn++;
             }
-            if (selectedColumn >= timeStemps.Count())
+            if (selectedColumn >= data.Count())
             {
                 return null;
             }
-            float temperature = float.NaN;
-            float dewpoint = float.NaN;
-            float windDirection = float.NaN;
-            float wind = float.NaN;
-            float windMax = float.NaN;
-            float precipitation = float.NaN;
-            float cloudCover = float.NaN;
-            float weather = float.NaN;
-            IEnumerable<XElement> data = document.Element(kml + "Placemark").Element(kml + "ExtendedData").Elements(dwd + "Forecast");
-            foreach (XElement element in data)
-            {
-                // see https://opendata.dwd.de/weather/lib/MetElementDefinition.xml
-                string[] values;
-                string value;
-                string second;
-                float start;
-                float delta;
-                switch (element.Attribute(dwd + "elementName").Value)
-                {
-                    case "TTT": // Temperature 2m above surface
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            temperature = delta * now.Minute / 60 + start - 273.15f;
-                        }
-                        break;
-                    case "Td": // Dewpoint 2m above surface
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            dewpoint = delta * now.Minute / 60 + start - 273.15f;
-                        }
-                        break;
-                    case "DD": // Wind direction
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            windDirection = delta * now.Minute / 60 + start;
-                        }
-                        break;
-                    case "FF": // Wind speed
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            wind = (delta * now.Minute / 60 + start) * 3.6f;
-                        }
-                        break;
-                    case "FX1": // Maximum wind gust within the last hour
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            windMax = (delta * now.Minute / 60 + start) * 3.6f;
-                        }
-                        break;
-                    case "RR1c": // Total precipitation during the last hour consistent with significant weather
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            precipitation = delta * now.Minute / 60 + start;
-                        }
-                        break;
-                    case "N": // Total cloud cover
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        value = values[selectedColumn];
-                        second = values[selectedColumn + 1];
-                        if (value != defaultSign && second != defaultSign)
-                        {
-                            start = float.Parse(value, CultureInfo.InvariantCulture);
-                            delta = float.Parse(second, CultureInfo.InvariantCulture) - start;
-                            cloudCover = delta * now.Minute / 60 + start;
-                        }
-                        break;
-                    case "ww": // Significant Weather
-                        value = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[selectedColumn];
-                        if (value != defaultSign)
-                        {
-                            weather = float.Parse(value, CultureInfo.InvariantCulture);
-                        }
-                        break;
 
-                    default: break;
-                }
-            }
+            CacheItem low = data[selectedColumn];
+            CacheItem high = data[selectedColumn +1];
 
+            float temperature = high.Temperature * now.Minute / 60 + low.Temperature - 273.15f;
+            float dewpoint = high.Dewpoint * now.Minute / 60 + low.Dewpoint - 273.15f;
+            float cloudCover = high.CloudCover * now.Minute / 60 + low.CloudCover;
             return new Item
             {
                 Temperature = temperature,
                 Humidity = (float)CalculateHumidity(dewpoint, temperature),
-                Wind = wind,
-                WindDirection = windDirection,
-                MaxWind = windMax,
-                Precipitation = precipitation,
-                Icon = GetMosmixIcon((int)weather, cloudCover)
+                Wind = (high.Wind * now.Minute / 60 + low.Wind) * 3.6f,
+                WindDirection = high.WindDirection * now.Minute / 60 + low.WindDirection,
+                MaxWind = (high.MaxWind * now.Minute / 60 + low.MaxWind) * 3.6f,
+                Precipitation = high.Precipitation * now.Minute / 60 + low.Precipitation,
+                Icon = Loader.Mosmix.GetMosmixIcon((int)low.Weather, cloudCover)
             };
         }
 
-        private ItemTimed[] GetMosmixData()
+        private static ItemTimedForcast[] GetMosmixData()
         {
             bool success = CacheMosmix(new Uri(DWDSettings.MosmixLUri, $"{stationIDMosmix}/kml/MOSMIX_L_LATEST_{stationIDMosmix}.kmz"));
             if (!success)
@@ -556,154 +354,12 @@ namespace DWDWeatherBand
                 return null;
             }
 
-            XDocument doc;
-            using (MemoryStream response = new MemoryStream(cacheMosmix.Value))
-            using (ZipArchive archive = new ZipArchive(response, ZipArchiveMode.Read))
-            {
-                if (archive.Entries.Count <= 0)
-                {
-                    return null;
-                }
-                using (StreamReader stream = new StreamReader(archive.Entries[0].Open()))
-                {
-                    doc = XDocument.Load(stream);
-                }
-            }
-            XNamespace kml = doc.Root.GetNamespaceOfPrefix("kml");
-            XNamespace dwd = doc.Root.GetNamespaceOfPrefix("dwd");
-            XElement document = doc.Root.Element(kml + "Document");
-            XElement defintion = document.Element(kml + "ExtendedData").Element(dwd + "ProductDefinition");
-            string defaultSign = defintion.Element(dwd + "FormatCfg").Element(dwd + "DefaultUndefSign").Value;
-            IEnumerable<XElement> timeStemps = defintion.Element(dwd + "ForecastTimeSteps").Elements(dwd + "TimeStep");
-            IEnumerable<XElement> data = document.Element(kml + "Placemark").Element(kml + "ExtendedData").Elements(dwd + "Forecast");
-
-            int dataLength = timeStemps.Count();
-            ItemTimed[] items = new ItemTimed[dataLength];
-            int index = 0;
-            foreach (XElement element in timeStemps)
-            {
-                items[index] = new ItemTimed() { Time=DateTime.Parse(element.Value) };
-                index++;
-            }
-            if (index >= timeStemps.Count())
-            {
-                return null;
-            }
-            float[] dewpoints = new float[dataLength];
-            float[] cloudCovers = new float[dataLength];
-            float[] weathers = new float[dataLength];
-
-            foreach (XElement element in data)
-            {
-                // see https://opendata.dwd.de/weather/lib/MetElementDefinition.xml
-                string[] values;
-                switch (element.Attribute(dwd + "elementName").Value)
-                {
-                    case "TTT": // Temperature 2m above surface
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            items[i].Temperature = float.Parse(values[i], CultureInfo.InvariantCulture) - 273.15f;
-                        }
-                        break;
-                    case "Td": // Dewpoint 2m above surface
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            dewpoints[i] = float.Parse(values[i], CultureInfo.InvariantCulture) - 273.15f;
-                        }
-                        break;
-                    case "DD": // Wind direction
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            items[i].WindDirection = float.Parse(values[i], CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case "FF": // Wind speed
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            items[i].Wind = float.Parse(values[i], CultureInfo.InvariantCulture) * 3.6f;
-                        }
-                        break;
-                    case "FX1": // Maximum wind gust within the last hour
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            items[i].MaxWind = float.Parse(values[i], CultureInfo.InvariantCulture) * 3.6f;
-                        }
-                        break;
-                    case "RR1c": // Total precipitation during the last hour consistent with significant weather
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            items[i].Precipitation = float.Parse(values[i], CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case "N": // Total cloud cover
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            cloudCovers[i] = float.Parse(values[i], CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case "ww": // Significant Weather
-                        values = element.Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        for (int i = 0; i < dataLength; i++)
-                        {
-                            if (values[i] == defaultSign)
-                            {
-                                continue;
-                            }
-                            weathers[i] = float.Parse(values[i], CultureInfo.InvariantCulture);
-                        }
-                        break;
-
-                    default: break;
-                }
-            }
-
-            for (int i = 0; i < dataLength; i++)
-            {
-                items[i].Humidity = (float)CalculateHumidity(dewpoints[i], items[i].Temperature);
-                items[i].Icon = GetMosmixIcon((int)weathers[i], cloudCovers[i]);
-            }
-
-            return items;
+            return cacheMosmix.Value;
         }
         #endregion
 
         #region Poi
-        private string GetPoiName(string stationID)
+        private static string GetPoiName(string stationID)
         {
             while (stationID.Length < 5)
             {
@@ -712,17 +368,17 @@ namespace DWDWeatherBand
             return $"{stationID}-BEOB.csv";
         }
 
-        private bool CachePoi(Uri uri)
+        private static bool CachePoi(Uri uri)
         {
-            KeyValuePair<DateTime, byte[]> cache = CacheData(uri, cachePoi, new TimeSpan(0, 15, 0));
-            if (cache.Equals(default(KeyValuePair<DateTime, byte[]>)))
+            KeyValuePair<DateTime, CacheItem[]> cache = CacheData(LoaderPoi, uri, cachePoi, new TimeSpan(0, 15, 0));
+            if (cache.Equals(default(KeyValuePair<DateTime, CacheItem[]>)))
             {
                 return false;
             }
             cachePoi = cache;
             return true;
         }
-        private ItemTimed[] GetPoisCSV()
+        private static ItemTimed[] GetPoisCSV()
         {
             bool success = CachePoi(new Uri(DWDSettings.PoiUri, GetPoiName(stationIDMosmix)));
             if (!success)
@@ -730,149 +386,12 @@ namespace DWDWeatherBand
                 return null;
             }
 
-            List<ItemTimed> values = new List<ItemTimed>();
-
-            using (MemoryStream response = new MemoryStream(cachePoi.Value))
-            using (TextFieldParser parser = new TextFieldParser(response, Encoding.UTF8))
-            {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(";");
-
-
-                if (parser.EndOfData)
-                {
-                    return null;
-                }
-                string[] fields = parser.ReadFields();
-
-                int IndexTemperatur = 0;
-                int IndexWindDirection = 0;
-                int IndexWind = 0;
-                int IndexWindMax = 0;
-                int IndexIcon = 0;
-                int IndexHumidity = 0;
-                int IndexPrecipitation = 0;
-                for (int i = 2; i < fields.Length; i++)
-                {
-                    switch (fields[i])
-                    {
-                        case "dry_bulb_temperature_at_2_meter_above_ground":
-                            IndexTemperatur = i;
-                            break;
-                        case "mean_wind_direction_during_last_10 min_at_10_meters_above_ground":
-                            IndexWindDirection = i;
-                            break;
-                        case "maximum_wind_speed_as_10_minutes_mean_during_last_hour":
-                            IndexWindMax = i;
-                            break;
-                        case "mean_wind_speed_during last_10_min_at_10_meters_above_ground":
-                            IndexWind = i;
-                            break;
-                        case "present_weather":
-                            IndexIcon = i;
-                            break;
-                        case "relative_humidity":
-                            IndexHumidity = i;
-                            break;
-                        case "precipitation_amount_last_hour":
-                            IndexPrecipitation = i;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-                CultureInfo culture = CultureInfo.GetCultureInfo("de-DE");
-                while (!parser.EndOfData)
-                {
-                    fields = parser.ReadFields();
-                    ItemTimed item = new ItemTimed();
-                    bool succes = DateTime.TryParseExact($"{fields[0]} {fields[1]}", "dd.MM.yy HH:mm", culture, DateTimeStyles.AssumeUniversal, out item.Time);
-                    if (!succes)
-                    {
-                        continue;
-                    }
-                    if (!float.TryParse(fields[IndexTemperatur], NumberStyles.Number, culture, out item.Temperature))
-                    {
-                        item.Temperature = float.NaN;
-                    }
-                    if (!float.TryParse(fields[IndexHumidity], NumberStyles.Number, culture, out item.Humidity))
-                    {
-                        item.Humidity = float.NaN;
-                    }
-                    if (!int.TryParse(fields[IndexIcon], NumberStyles.Number, culture, out int icon))
-                    {
-                        item.Icon = WeatherIcon.None;
-                    }
-                    else
-                    {
-                        item.Icon = ParsePoiIcon(icon);
-                    }
-                    if (!float.TryParse(fields[IndexWind], NumberStyles.Number, culture, out item.Wind))
-                    {
-                        item.Wind = float.NaN;
-                    }
-                    if (!float.TryParse(fields[IndexWindMax], NumberStyles.Number, culture, out item.MaxWind))
-                    {
-                        item.MaxWind = float.NaN;
-                    }
-                    if (!float.TryParse(fields[IndexWindDirection], NumberStyles.Number, culture, out item.WindDirection))
-                    {
-                        item.WindDirection = float.NaN;
-                    }
-                    if (!float.TryParse(fields[IndexPrecipitation], NumberStyles.Number, culture, out item.Precipitation))
-                    {
-                        item.Precipitation = float.NaN;
-                    }
-                    values.Add(item);
-                }
-            }
-
-            return values.ToArray();
-        }
-
-        private WeatherIcon ParsePoiIcon(int icon)
-        {
-            switch (icon)
-            {
-                case 1: return WeatherIcon.Wolkenlos;
-                case 2: return WeatherIcon.Bewoelkt_leicht;
-                case 3: return WeatherIcon.Bewoelkt_schwer;
-                case 4: return WeatherIcon.Bedeckt;
-                case 5: return WeatherIcon.Nebel;
-                case 6: return WeatherIcon.Nebel_gefrierend;
-                case 7: return WeatherIcon.Regen_leicht;
-                case 8: return WeatherIcon.Regen_mittel;
-                case 9: return WeatherIcon.Regen_schwer;
-                case 10: return WeatherIcon.Regen_gefrierend_leicht;
-                case 11: return WeatherIcon.Regen_gefrierend_schwer;
-                case 12: return WeatherIcon.Schneeregen_leicht;
-                case 13: return WeatherIcon.Schneeregen_schwer;
-                case 14: return WeatherIcon.Schneefall_leicht;
-                case 15: return WeatherIcon.Schneefall_mittel;
-                case 16: return WeatherIcon.Schneefall_schwer;
-                case 17: return WeatherIcon.Hagel_leicht;
-                case 18: return WeatherIcon.Regenschauer_leicht;
-                case 19: return WeatherIcon.Regenschauer_schwer;
-                case 20: return WeatherIcon.Schneeregenschauer_leicht;
-                case 21: return WeatherIcon.Schneeregenschauer_schwer;
-                case 22: return WeatherIcon.Schneeschauer_leicht;
-                case 23: return WeatherIcon.Schneeschauer_schwer;
-                case 24: return WeatherIcon.Graupelschauer;
-                case 25: return WeatherIcon.Hagel_schwer;
-                case 26: return WeatherIcon.Gewitter_leicht;
-                case 27: return WeatherIcon.Gewitter_mittel;
-                case 28: return WeatherIcon.Gewitter_schwer;
-                case 29: return WeatherIcon.Gewitter_Hagel_leicht;
-                case 30: return WeatherIcon.Gewitter_Hagel_schwer;
-                case 31: return WeatherIcon.Sturm;
-                default: return WeatherIcon.None;
-            }
+            return cachePoi.Value;
         }
         #endregion
 
         #region History
-        private Uri CombineHistoryUri(Resolution Resolution, DataTyp DataTyp)
+        private static Uri CombineHistoryUri(Resolution Resolution, DataTyp DataTyp)
         {
             if (Resolution == Resolution.Minutes10 || Resolution == Resolution.Hourly)
             {
@@ -881,7 +400,7 @@ namespace DWDWeatherBand
             return new Uri(DWDSettings.HistroyBaseUri, $"{DWDSettings.Resolutions[(int)Resolution]}/kl");
         }
 
-        private string GetHistoryStationFromGeoPosition(Resolution Resolution, DataTyp DataTyp, out string Name)
+        private static string GetHistoryStationFromGeoPosition(Resolution Resolution, DataTyp DataTyp, out string Name)
         {
             Name = null;
             string filepath = "{0}_Beschreibung_Stationen.txt";
@@ -911,27 +430,31 @@ namespace DWDWeatherBand
                     {
                         return null;
                     }
-                    StreamReader reader = new StreamReader(stream, Encoding.UTF8);
-                    reader.ReadLine(); // Skip first 2 lines
-                    reader.ReadLine(); // because these are table header
 
-                    string line;
-                    float latitudeDelta = float.MaxValue;
-                    float longitudeDelta = float.MaxValue;
-                    while ((line = reader.ReadLine()) != null)
+                    using (BufferedStream bufferedStream = new BufferedStream(stream))
+                    using (StreamReader reader = new StreamReader(bufferedStream, Encoding.UTF8))
                     {
-                        //Groups 1=StationId  2=Latitude  3=Longitude  4=Name  
-                        Match parsed = DWDSettings.HistoryStationRegex.Match(line);
-                        float lat = float.Parse(parsed.Groups[2].Value, CultureInfo.InvariantCulture);
-                        float lon = float.Parse(parsed.Groups[3].Value, CultureInfo.InvariantCulture);
-                        float deltaLat = (latitude - lat) * (latitude - lat);
-                        float deltaLon = (longitude - lon) * (longitude - lon);
-                        if (deltaLat + deltaLon < latitudeDelta + longitudeDelta)
+                        reader.ReadLine(); // Skip first 2 lines
+                        reader.ReadLine(); // because these are table header
+
+                        string line;
+                        double latitudeDelta = float.MaxValue;
+                        double longitudeDelta = float.MaxValue;
+                        while ((line = reader.ReadLine()) != null)
                         {
-                            stationID = parsed.Groups[1].Value;
-                            Name = parsed.Groups[4].Value;
-                            latitudeDelta = deltaLat;
-                            longitudeDelta = deltaLon;
+                            //Groups 1=StationId  2=Latitude  3=Longitude  4=Name  
+                            Match parsed = DWDSettings.HistoryStationRegex.Match(line);
+                            float lat = float.Parse(parsed.Groups[2].Value, CultureInfo.InvariantCulture);
+                            float lon = float.Parse(parsed.Groups[3].Value, CultureInfo.InvariantCulture);
+                            double deltaLat = (latitude - lat) * (latitude - lat);
+                            double deltaLon = (longitude - lon) * (longitude - lon);
+                            if (deltaLat + deltaLon < latitudeDelta + longitudeDelta)
+                            {
+                                stationID = parsed.Groups[1].Value;
+                                Name = parsed.Groups[4].Value;
+                                latitudeDelta = deltaLat;
+                                longitudeDelta = deltaLon;
+                            }
                         }
                     }
                 }
@@ -945,7 +468,7 @@ namespace DWDWeatherBand
         #endregion
 
         #region AWS
-        private JsonCasts.CurrentMeasurement CachAwsCurrent()
+        private static JsonCasts.CurrentMeasurement CachAwsCurrent()
         {
             if (cacheAwsCurrent.Value != default && cacheAwsCurrent.Key != default && cacheAwsCurrent.Key > DateTime.Now)
             {
@@ -958,7 +481,7 @@ namespace DWDWeatherBand
         #endregion
 
         #region General
-        private bool SetGeoFromIP()
+        private static bool SetGeoFromIP()
         {
             JsonCasts.GeoItem item = GetJson<JsonCasts.GeoItem>(DWDSettings.GeoLocationAPI);
             if (item == default(JsonCasts.GeoItem))
@@ -969,7 +492,7 @@ namespace DWDWeatherBand
             longitude = float.Parse(item.geoplugin_longitude, CultureInfo.InvariantCulture);
             return true;
         }
-        private T GetJson<T>(Uri uri)
+        private static T GetJson<T>(Uri uri)
         {
             HttpWebRequest request = WebRequest.CreateHttp(uri);
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -978,7 +501,8 @@ namespace DWDWeatherBand
             try
             {
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+                using (BufferedStream bufferedResponse = new BufferedStream(response.GetResponseStream()))
+                using (StreamReader sr = new StreamReader(bufferedResponse, Encoding.UTF8))
                 using (JsonTextReader jsonIn = new JsonTextReader(sr))
                 {
                     if (response.StatusCode != HttpStatusCode.OK)
@@ -1002,7 +526,7 @@ namespace DWDWeatherBand
                 return default;
             }
         }
-        private bool UriIsOK(Uri uri)
+        private static bool UriIsOK(Uri uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
             request.Method = "HEAD";
@@ -1020,7 +544,7 @@ namespace DWDWeatherBand
             }
         }
 
-        private KeyValuePair<DateTime, byte[]> CacheData(Uri uri, KeyValuePair<DateTime, byte[]> current, TimeSpan expireTime)
+        private static KeyValuePair<DateTime, CacheItem[]> CacheData(Loader.ILoader loader, Uri uri, KeyValuePair<DateTime, CacheItem[]> current, TimeSpan expireTime)
         {
             if (current.Key != default && current.Key > DateTime.Now)
             {
@@ -1031,7 +555,7 @@ namespace DWDWeatherBand
             {
                 using (CustomeWebClient client = new CustomeWebClient{Timeout = 500})
                 {
-                    return new KeyValuePair<DateTime, byte[]>(DateTime.Now + expireTime, client.DownloadData(uri));
+                    return new KeyValuePair<DateTime, CacheItem[]>(DateTime.Now + expireTime, loader.Parse(client.DownloadData(uri)));
                 }
             }
             catch (WebException ex)
@@ -1047,7 +571,7 @@ namespace DWDWeatherBand
             }
         }
 
-        private double CalculateHumidity(double dewpoint, double temperature)
+        private static double CalculateHumidity(double dewpoint, double temperature)
         {
             // Humidity based on https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/faq/relative_feuchte.html
             double rh_c2 = 17.5043;
@@ -1055,7 +579,7 @@ namespace DWDWeatherBand
             return 100 * Math.Exp((rh_c2 * dewpoint / (rh_c3 + dewpoint)) - (rh_c2 * temperature / (rh_c3 + temperature)));
         }
 
-        private bool SetGeoPosition()
+        private static bool SetGeoPosition()
         {
             using (GeoCoordinateWatcher watcher = new GeoCoordinateWatcher(GeoPositionAccuracy.Default))
             {
@@ -1081,17 +605,34 @@ namespace DWDWeatherBand
         #endregion
 
         #region public
-        public bool Init()
+        public static bool Init(double Latitude, double Longitude)
         {
+            latitude = Latitude;
+            longitude = Longitude;
+            geoLocationSet = true;
+            return Init();
+        }
+
+        public static bool Init()
+        {
+
             if (!geoLocationSet && !SetGeoPosition())
             {
                 return false;
             }
                 
             stationIDMosmix = GetMosmixStationFromGeoPosition(out name);
-            return stationIDHistory != default;
+            _finishedInit = stationIDMosmix != default;
+#if DEBUG
+            System.Windows.Forms.MessageBox.Show(
+                $"{stationIDMosmix} {name}",
+                "StationIDMosmix",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+#endif
+            return _finishedInit;
         }
-        public async Task<bool> UpdateNow()
+        public static async Task<bool> UpdateNow()
         {
             if (stationIDMosmix == default && !await Task.Run(delegate { return Init(); }))
             {
@@ -1106,7 +647,7 @@ namespace DWDWeatherBand
                         return null;
                     }
                     return new Item{
-                        Icon = ParsePoiIcon(item.icon),
+                        Icon = Loader.Poi.ParsePoiIcon(item.icon),
                         Temperature = item.temperature == 32767 ? float.NaN : item.temperature / 10,
                         Wind = item.meanwind == 32767 ? float.NaN : item.meanwind / 10,
                         WindDirection = item.winddirection== 32767 ? float.NaN : item.winddirection / 10,
@@ -1150,7 +691,7 @@ namespace DWDWeatherBand
             return success;
         }
 
-        public async Task<bool> UpdateHighLow()
+        public static async Task<bool> UpdateHighLow()
         {
             if (stationIDMosmix == default && !await Task.Run(delegate { return Init(); }))
             {
@@ -1167,50 +708,23 @@ namespace DWDWeatherBand
                 }
             }
 
-            _dailyHigh = new Item
-            {
-                Icon = WeatherIcon.None,
-                Temperature = _now.Temperature,
-                Precipitation = _now.Precipitation,
-                Humidity = _now.Humidity,
-                Wind = _now.Wind,
-                MaxWind = _now.MaxWind,
-                WindDirection = _now.WindDirection,
-            };
-            _dailyLow = new Item
-            {
-                Icon = WeatherIcon.None,
-                Temperature = _now.Temperature,
-                Precipitation = _now.Precipitation,
-                Humidity = _now.Humidity,
-                Wind = _now.Wind,
-                MaxWind = _now.MaxWind,
-                WindDirection = _now.WindDirection,
-            };
-            Task<Item[]>[] tasks = new Task<Item[]>[] {
+            _dailyHigh = Item.Copy(_now);
+            _dailyHigh.Icon = WeatherIcon.None;
+            _dailyLow = Item.Copy(_now);
+            _dailyHigh.Icon = WeatherIcon.None;
+            _absoluteHigh = Item.Copy(_now);
+            _absoluteHigh.Icon = WeatherIcon.None;
+            _absoluteLow = Item.Copy(_now);
+            _absoluteLow.Icon = WeatherIcon.None;
+
+            Task<ItemTimed[]>[] tasks = new Task<ItemTimed[]>[] {
                 Task.Run(() => {
                     ItemTimed[] items = GetPoisCSV();
                     if (items == null || items.Length <= 0)
                     {
                         return new ItemTimed[0];
                     }
-                    DateTime now = DateTime.Now;
-                    List<ItemTimed> results = new List<ItemTimed>();
-                    int fittedLength;
-                    for (fittedLength = 0; fittedLength < items.Length; fittedLength++)
-                    {
-                        if (items[fittedLength].Time.DayOfYear != now.DayOfYear)
-                        {
-                            break;
-                        }
-                    }
-                    if (fittedLength >= items.Length)
-                    { 
-                        return new ItemTimed[0];
-                    }                
-                    ItemTimed[] fitted = new ItemTimed[fittedLength];
-                    Array.Copy(items, fitted, fittedLength);
-                    return (Item[])fitted;
+                    return items;
                 }),
                 Task.Run(() =>
                 {   
@@ -1219,57 +733,74 @@ namespace DWDWeatherBand
                     {
                         return new ItemTimed[0];
                     }
-                    DateTime now = DateTime.Now;
-                    int fittedStart = 0;
-                    int fittedLength;
-                    for (fittedLength = 0; fittedLength < items.Length; fittedLength++)
-                    {
-                        if (items[fittedLength].Time.DayOfYear != now.DayOfYear)
-                        {
-                            if (fittedStart != fittedLength)
-                            {
-                                break;
-                            }
-                            fittedStart++;
-                        }
-                    }
-                    if (fittedLength >= items.Length)
-                    {
-                        return new ItemTimed[0];
-                    }
-                    ItemTimed[] fitted = new ItemTimed[fittedLength - fittedStart];
-                    Array.Copy(items, fittedStart, fitted, 0, fittedLength - fittedStart);
-                    return (Item[])fitted;
+                    return items;
                 }),
             };
 
-
+            int currentDay = DateTime.Now.DayOfYear;
             success = false;
-            foreach (Item[] items in await Task.WhenAll(tasks))
-            foreach (Item item in items)
+            foreach (ItemTimed[] items in await Task.WhenAll(tasks))
+            foreach (ItemTimed item in items)
             {
                 success |= (item != null);
                 if (item == null)
                 {
                     continue;
                 }
-                _dailyHigh.Temperature = item.Temperature > _dailyHigh.Temperature ? item.Temperature : _dailyHigh.Temperature;
-                _dailyHigh.Precipitation = item.Precipitation > _dailyHigh.Precipitation ? item.Precipitation : _dailyHigh.Precipitation;
-                _dailyHigh.Humidity = item.Humidity > _dailyHigh.Humidity ? item.Humidity : _dailyHigh.Humidity;
-                _dailyHigh.Wind = item.Wind > _dailyHigh.Wind ? item.Wind : _dailyHigh.Wind;
-                _dailyHigh.MaxWind = item.MaxWind > _dailyHigh.MaxWind ? item.MaxWind : _dailyHigh.MaxWind;
-                _dailyHigh.WindDirection = item.WindDirection > _dailyHigh.WindDirection ? item.WindDirection : _dailyHigh.WindDirection;
 
-                _dailyLow.Temperature = item.Temperature < _dailyLow.Temperature ? item.Temperature : _dailyLow.Temperature;
-                _dailyLow.Precipitation = item.Precipitation < _dailyLow.Precipitation ? item.Precipitation : _dailyLow.Precipitation;
-                _dailyLow.Humidity = item.Humidity < _dailyLow.Humidity ? item.Humidity : _dailyLow.Humidity;
-                _dailyLow.Wind = item.Wind < _dailyLow.Wind ? item.Wind : _dailyLow.Wind;
-                _dailyLow.MaxWind = item.MaxWind < _dailyLow.MaxWind ? item.MaxWind : _dailyLow.MaxWind;
-                _dailyLow.WindDirection = item.WindDirection < _dailyLow.WindDirection ? item.WindDirection : _dailyLow.WindDirection;
+                if (currentDay == item.Time.DayOfYear)
+                {
+                    _dailyHigh.Temperature = item.Temperature > _dailyHigh.Temperature ? item.Temperature : _dailyHigh.Temperature;
+                    _dailyHigh.Precipitation = item.Precipitation > _dailyHigh.Precipitation ? item.Precipitation : _dailyHigh.Precipitation;
+                    _dailyHigh.Humidity = item.Humidity > _dailyHigh.Humidity ? item.Humidity : _dailyHigh.Humidity;
+                    _dailyHigh.Wind = item.Wind > _dailyHigh.Wind ? item.Wind : _dailyHigh.Wind;
+                    _dailyHigh.MaxWind = item.MaxWind > _dailyHigh.MaxWind ? item.MaxWind : _dailyHigh.MaxWind;
+                    _dailyHigh.WindDirection = item.WindDirection > _dailyHigh.WindDirection ? item.WindDirection : _dailyHigh.WindDirection;
+
+                    _dailyLow.Temperature = item.Temperature < _dailyLow.Temperature ? item.Temperature : _dailyLow.Temperature;
+                    _dailyLow.Precipitation = item.Precipitation < _dailyLow.Precipitation ? item.Precipitation : _dailyLow.Precipitation;
+                    _dailyLow.Humidity = item.Humidity < _dailyLow.Humidity ? item.Humidity : _dailyLow.Humidity;
+                    _dailyLow.Wind = item.Wind < _dailyLow.Wind ? item.Wind : _dailyLow.Wind;
+                    _dailyLow.MaxWind = item.MaxWind < _dailyLow.MaxWind ? item.MaxWind : _dailyLow.MaxWind;
+                    _dailyLow.WindDirection = item.WindDirection < _dailyLow.WindDirection ? item.WindDirection : _dailyLow.WindDirection;
+                }
+
+                _absoluteHigh.Temperature = item.Temperature > _absoluteHigh.Temperature ? item.Temperature : _absoluteHigh.Temperature;
+                _absoluteHigh.Precipitation = item.Precipitation > _absoluteHigh.Precipitation ? item.Precipitation : _absoluteHigh.Precipitation;
+                _absoluteHigh.Humidity = item.Humidity > _absoluteHigh.Humidity ? item.Humidity : _absoluteHigh.Humidity;
+                _absoluteHigh.Wind = item.Wind > _absoluteHigh.Wind ? item.Wind : _absoluteHigh.Wind;
+                _absoluteHigh.MaxWind = item.MaxWind > _absoluteHigh.MaxWind ? item.MaxWind : _absoluteHigh.MaxWind;
+                _absoluteHigh.WindDirection = item.WindDirection > _absoluteHigh.WindDirection ? item.WindDirection : _absoluteHigh.WindDirection;
+
+                _absoluteLow.Temperature = item.Temperature < _absoluteLow.Temperature ? item.Temperature : _absoluteLow.Temperature;
+                _absoluteLow.Precipitation = item.Precipitation < _absoluteLow.Precipitation ? item.Precipitation : _absoluteLow.Precipitation;
+                _absoluteLow.Humidity = item.Humidity < _absoluteLow.Humidity ? item.Humidity : _absoluteLow.Humidity;
+                _absoluteLow.Wind = item.Wind < _absoluteLow.Wind ? item.Wind : _absoluteLow.Wind;
+                _absoluteLow.MaxWind = item.MaxWind < _absoluteLow.MaxWind ? item.MaxWind : _absoluteLow.MaxWind;
+                _absoluteLow.WindDirection = item.WindDirection < _absoluteLow.WindDirection ? item.WindDirection : _absoluteLow.WindDirection;
             }
             return success;
         }
+        public static async Task<bool> UpdateForcast()
+        {
+            if (stationIDMosmix == default && !await Task.Run(delegate { return Init(); }))
+            {
+                return false;
+            }
 
+            Task<ItemTimedForcast[]> task = Task.Run(() =>
+            {
+                ItemTimedForcast[] _items = GetMosmixData();
+                if (_items == null || _items.Length <= 0)
+                {
+                    return new ItemTimedForcast[0];
+                }
+                return _items;
+            });
+
+            _forcast = await task;
+            return true;
+        }
         #endregion
     }
 }

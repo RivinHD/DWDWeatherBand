@@ -1,6 +1,10 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-	<Package Name="DWD Weather Band" Manufacturer="Vincent Gerlach" Version="0.1.0.5" UpgradeCode="af387e03-d414-4b5a-97b5-2d250aee6e2d" Compressed="yes">
+	<Package Name="DWD Weather Band" Manufacturer="Vincent Gerlach" Version="0.9.0.0" UpgradeCode="af387e03-d414-4b5a-97b5-2d250aee6e2d" Compressed="yes">
 		<!-- Version: major.minor.build.patch -->
+		<!-- Increment the Version value in your Product element to be higher than any previous versions that you have shipped. 
+		Windows Installer only uses the first 3 parts of the version in upgrade scenarios, 
+		so make sure to increment your version such that one of the first 3 parts is higher than any previously shipped version. 
+		For example, if your version 1 uses Version value 1.0.1.0, then version 2 should have a Version value of 1.0.2.0 or higher (1.0.1.1 will not work here).-->
 		<MajorUpgrade AllowDowngrades="no" DowngradeErrorMessage="!(loc.DowngradeError)"/>
 		<MediaTemplate EmbedCab="yes"/>
 

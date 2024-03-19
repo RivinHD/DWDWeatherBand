@@ -20,7 +20,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <StackPanel x:Name="BasePanel" Orientation="Horizontal" d:Height="40" Background="Transparent" MouseRightButtonDown="BasePanel_MouseRightButtonDown" MouseRightButtonUp="BasePanel_MouseRightButtonUp">
+    <StackPanel x:Name="BasePanel" Orientation="Horizontal" d:Height="40" Background="Transparent" MouseRightButtonDown="BasePanel_MouseRightButtonDown" MouseRightButtonUp="BasePanel_MouseRightButtonUp" MouseLeftButtonDown="BasePanel_MouseLeftButtonDown" MouseLeftButtonUp="BasePanel_MouseLeftButtonUp">
         <Image x:Name="IconBlock" Source="/DWDWeatherBand;component/Resources/wettericons/Bewoelkt_schwer.png" IsHitTestVisible="False"/>
 
         <Grid x:Name="TempraturBlock">
@@ -74,16 +74,27 @@
                 </StackPanel>
             </StackPanel>
         </Grid>
+
+        <Popup x:Name="ShowInformation"  Placement="Top" StaysOpen="True" AllowsTransparency="True" d:IsOpen="True" d:Width="10" d:Height="10">
+            <local:InformationPopup ParentPopup="{x:Reference ShowInformation}"/>
+        </Popup>
         
-        <Popup x:Name="ShowInformation"  Placement="Top" StaysOpen="False" AllowsTransparency="True" d:IsOpen="True" d:Width="10" d:Height="10">
+        <Popup x:Name="ShowUpdateTime"  Placement="Top" StaysOpen="False" AllowsTransparency="True" d:IsOpen="True" d:Width="10" d:Height="10">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
                 
                 <Label Content="Last Updated"/>
                 <Label x:Name="LastUpdated" Grid.Column="1"/>
+
+                <Label Content="Station" Grid.Row="1"/>
+                <Label x:Name="CurrentStation" Grid.Column="1" Grid.Row="1"/>
             </Grid>
         </Popup>
     </StackPanel>
