@@ -24,6 +24,11 @@ namespace DWDWeatherBand
         bool GetValue(double xPosition, out double value, int roundDigits = 2);
         bool GetValueLocal(double position, out double value, int roundDigits = 2);
         double GetPosition(double xPosition);
+
+        void SetDataValueX(double min, double max);
+        void SetDataValueY(double min, double max);
+
+        void Update();
     }
 
     public class VirtualData : IDrawData
@@ -129,6 +134,23 @@ namespace DWDWeatherBand
             }
             return names;
         }
+
+        public void SetDataValueX(double min, double max)
+        {
+            MinDataValueX = min; 
+            MaxDataValueX = max;
+        }
+
+        public void SetDataValueY(double min, double max)
+        {
+            MinDataValueY = min;
+            MaxDataValueY = max;
+        }
+
+        public void Update()
+        {
+            return;
+        }
     }
 
     public class DrawDataAsPath : IDrawData
@@ -189,7 +211,6 @@ namespace DWDWeatherBand
             }
             UpdateGraph();
         }
-
         public void ClearData()
         {
             data = new KeyValuePair<double, double>[0];
@@ -267,6 +288,23 @@ namespace DWDWeatherBand
             double highvalue = data[index].Value;
             value = (highvalue - lowvalue) * (position - low) / (high - low) + lowvalue;
             return true;
+        }
+
+        public void SetDataValueX(double min, double max)
+        {
+            MinDataValueX = min;
+            MaxDataValueX = max;
+        }
+
+        public void SetDataValueY(double min, double max)
+        {
+            MinDataValueY = min;
+            MaxDataValueY = max;
+        }
+
+        public void Update()
+        {
+            UpdateGraph();
         }
     }
     public class DrawDataAsRectangle : IDrawData
@@ -508,6 +546,23 @@ namespace DWDWeatherBand
             double highvalue = data[index].Value;
             value = (highvalue - lowvalue) * (position - low) / (high - low) + lowvalue;
             return true;
+        }
+
+        public void SetDataValueX(double min, double max)
+        {
+            MinDataValueX = min;
+            MaxDataValueX = max;
+        }
+
+        public void SetDataValueY(double min, double max)
+        {
+            MinDataValueY = min;
+            MaxDataValueY = max;
+        }
+
+        public void Update()
+        {
+            UpdateGraph();
         }
     }
 }

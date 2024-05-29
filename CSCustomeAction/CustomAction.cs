@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using WixToolset.Dtf.WindowsInstaller;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
+using WixToolset.Dtf.WindowsInstaller;
 
 namespace CustomeAction
 {
@@ -31,13 +29,13 @@ namespace CustomeAction
             string args = unregister ? "/unregister" : "/nologo /codebase";
             var regAsmPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"Microsoft.NET\Framework64\v4.0.30319\regasm.exe");
             string output = RunProgram(regAsmPath, $@"{args} ""{target}""");
-#if DEBUG
+        #if DEBUG
             MessageBox.Show(
                 target + "\n" + output,
                 "Output",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
-#endif
+        #endif
             return true;
         }
 

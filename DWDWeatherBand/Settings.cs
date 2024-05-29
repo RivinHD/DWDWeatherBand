@@ -7,32 +7,10 @@ using System.Text;
 using System.Windows.Media;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Xceed.Wpf.Toolkit;
 using static DWDWeatherBand.Settings;
 
 namespace DWDWeatherBand
 {
-    public class StandardColors : ObservableCollection<ColorItem>
-    {
-        public StandardColors() : base()
-        {
-            ColorTemplate dark = ColorTemplate.getDefaultDark();
-            Add(new ColorItem(dark.Foreground, "Dark Foreground"));
-            Add(new ColorItem(dark.DisabledForeground, "Dark DisabledForeground"));
-            Add(new ColorItem(dark.SelectedForeground, "Dark SelectedForeground"));
-            Add(new ColorItem(dark.Background, "Dark Background"));
-            Add(new ColorItem(dark.BackgroundDark, "Dark BackgroundDark"));
-            Add(new ColorItem(dark.BackgroundLight, "Dark BackgroundLight"));
-            ColorTemplate light = ColorTemplate.getDefaultLight();
-            Add(new ColorItem(light.Foreground, "Light Foreground"));
-            Add(new ColorItem(light.DisabledForeground, "Light SDisabledForeground"));
-            Add(new ColorItem(light.SelectedForeground, "Light SelectedForeground"));
-            Add(new ColorItem(light.Background, "Light Background"));
-            Add(new ColorItem(light.BackgroundDark, "Light BackgroundDark"));
-            Add(new ColorItem(light.BackgroundLight, "Light BackgroundLight"));
-        }
-    }
-
     public class Themes : ObservableCollection<string>
     {
         public Themes() : base() 

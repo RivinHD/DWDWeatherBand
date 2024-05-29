@@ -1,29 +1,16 @@
-﻿using CSDeskBand;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Forms;
-using UserControl = System.Windows.Controls.UserControl;
-using System.Net.Http;
-using System.Windows.Controls.Primitives;
-using Microsoft.VisualBasic;
-using System.Threading;
-using Timer = System.Windows.Forms.Timer;
 using System.Windows.Threading;
-using System.Globalization;
-using System.Windows.Interop;
-using System.Runtime.InteropServices;
+using CSDeskBand;
+using UserControl = System.Windows.Controls.UserControl;
 
 namespace DWDWeatherBand
 {
@@ -264,6 +251,29 @@ namespace DWDWeatherBand
             bandWin.Options.MinHorizontalSize = new DeskBandSize((int)(Math.Ceiling(BasePanel.ActualWidth) + 0.5), (int)(Math.Ceiling(BasePanel.ActualHeight) + 0.5));
             bandWin.Options.HorizontalSize = bandWin.Options.MinHorizontalSize;
         }
+
+        private void UpdateWithSettings()
+        {
+            Settings.Properties properties = Settings.LoadedProperties;
+            FontFamily font = new FontFamily(properties.Font);
+
+            Resources["SelectedFont"] = font;
+
+            updateTimer.Interval = TimeSpan.FromMinutes(properties.UpdateIntervall);
+#if DEBUG
+            updateTimer.Interval = TimeSpan.FromMinutes(1);
+#endif
+
+            errorTimer.Interval = TimeSpan.FromSeconds(properties.ErrorIntervall);
+
+            IconBlock.Visibility = properties.ShowIcon ? Visibility.Visible : Visibility.Collapsed;
+            TemperaturMaxText.Visibility = properties.ShowMaxMinTemperature ? Visibility.Visible : Visibility.Collapsed;
+            TemperaturMinText.Visibility = properties.ShowMaxMinTemperature ? Visibility.Visible : Visibility.Collapsed;
+            Humidity.Visibility = properties.ShowHumidity ? Visibility.Visible : Visibility.Collapsed;
+            Precipitation.Visibility = properties.ShowPrecipitation ? Visibility.Visible : Visibility.Collapsed;
+            Wind.Visibility = properties.ShowWindSpeed ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         private void BasePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (ShowUpdateTime.IsOpen || !DWDWeather.FinishedInit)
@@ -298,6 +308,11 @@ namespace DWDWeatherBand
                 return;
             }
             ShowUpdateTime.IsOpen = false;
+        }
+
+        private void ShowInformation_Closed(object sender, EventArgs e)
+        {
+            UpdateWithSettings();
         }
 
         protected void Dispose(object sender, EventArgs e)

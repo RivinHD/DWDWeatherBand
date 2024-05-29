@@ -1,5 +1,5 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-	<Package Name="DWD Weather Band" Manufacturer="Vincent Gerlach" Version="0.9.0.0" UpgradeCode="af387e03-d414-4b5a-97b5-2d250aee6e2d" Compressed="yes">
+	<Package Name="DWD Weather Band" Manufacturer="Vincent Gerlach" Version="0.9.1.0" UpgradeCode="af387e03-d414-4b5a-97b5-2d250aee6e2d" Compressed="yes">
 		<!-- Version: major.minor.build.patch -->
 		<!-- Increment the Version value in your Product element to be higher than any previous versions that you have shipped. 
 		Windows Installer only uses the first 3 parts of the version in upgrade scenarios, 

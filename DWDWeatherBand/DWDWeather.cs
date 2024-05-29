@@ -9,7 +9,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
+using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using TimeSpan = System.TimeSpan;
 
 namespace DWDWeatherBand
@@ -91,7 +93,7 @@ namespace DWDWeatherBand
         // Mosmix is used for the forcast and to calculate the current temperatur
         // More information on https://www.dwd.de/DE/leistungen/met_verfahren_mosmix/met_verfahren_mosmix.html
         public static Uri MosmixStaionsUri = new Uri("https://www.dwd.de/DE/leistungen/klimadatendeutschland/statliste/statlex_html.html?view=nasPublication&nn=16102");
-        public static Regex MosmixStationRegex = new Regex("<tr><td>(.*?)<\\/td><td.*?<\\/td><td.*?MN<\\/td><td .*?>(.*?)<\\/td><td.*?>(.*?)<\\/td><td.*?>(.*?)<\\/td>.*");
+        public static Regex MosmixStationRegex = new Regex("<tr><td>(.*?)<\\/td><td.*?<\\/td><td.*?MN<\\/td><td .*?>(.*?)<\\/td><td.*?>(.*?)<\\/td><td.*?>(.*?)<\\/td>");
         // MosmixS get's updated every hour, but all_stations -> 38 MB zipped & 650 MB unzipped
         public static Uri MosmixSLatestUri = new Uri("https://opendata.dwd.de/weather/local_forecasts/mos/MOSMIX_S/all_stations/kml/MOSMIX_S_LATEST_240.kmz");
         // MosmixL get's updated every 6 hours, but one_station -> 18 KB zipped & 337 KB unzipped
@@ -241,15 +243,16 @@ namespace DWDWeatherBand
                         return null;
                     }
                     using (BufferedStream bufferedStream = new BufferedStream(stream))
-                    using (StreamReader reader = new StreamReader(bufferedStream, Encoding.UTF8))
                     {
-                        string line;
+                        HtmlDocument html = new HtmlDocument();
+                        html.Load(bufferedStream);
+                        HtmlNodeCollection selection = html.DocumentNode.SelectNodes("//tr");
                         double latitudeDelta = double.MaxValue;
                         double longitudeDelta = double.MaxValue;
-                        while ((line = reader.ReadLine()) != null)
+                        foreach (HtmlNode item in selection)
                         {
                             //Groups 1=Name  2=StaionID  3=Latitude  4=Longitude
-                            Match parsed = DWDSettings.MosmixStationRegex.Match(line);
+                            Match parsed = DWDSettings.MosmixStationRegex.Match(Regex.Replace(item.OuterHtml, @"\t|\n|\r", ""));
                             if (!parsed.Success)
                             {
                                 continue;
@@ -658,7 +661,7 @@ namespace DWDWeatherBand
                 }),
                 Task.Run(() => {
                     ItemTimed[] item = GetPoisCSV();
-                    if (item.Length <= 0)
+                    if (item ==null || item.Length <= 0)
                     {
                         return null;
                     }

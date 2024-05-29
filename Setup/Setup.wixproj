@@ -4,9 +4,12 @@
     <IncludeSearchPaths>
     </IncludeSearchPaths>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <BindFiles>true</BindFiles>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.2" />
-    <PackageReference Include="WixToolset.Util.wixext" Version="4.0.2" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="4.0.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CSCustomeAction\CSCustomeAction.csproj" />

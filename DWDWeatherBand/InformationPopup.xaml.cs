@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,14 +18,14 @@ namespace DWDWeatherBand
     /// <summary>
     /// Interaction logic for InformationPopup.xaml
     /// </summary>
-    public partial class InformationPopup : UserControl
+    public partial class InformationPopup : UserControl, INotifyPropertyChanged
     {
         public static DependencyProperty ParentPopupProperty = DependencyProperty.Register("ParentPopup", typeof(Popup), typeof(InformationPopup));
 
         Settings.Properties property;
         private bool initMode = true;
         private bool captured = false;
-        private bool indikatorEnabled = false;
+        private bool indicatorEnabled = false;
         bool isDisposed = false;
         DispatcherTimer errorTimer;
         public InformationPopup()
@@ -33,6 +35,8 @@ namespace DWDWeatherBand
             initMode = false;
             errorTimer = new DispatcherTimer();
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public Popup ParentPopup
         {
@@ -75,23 +79,35 @@ namespace DWDWeatherBand
                 }
             }
         }
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         #region DWDWeather Tab
 
-        Label[] temperatureScale;
-        Label[] precipitationScale;
-        Label[] windScale;
-        Label[] humidityScale;
-        Label[] precipitationProbabilityScale;
-        RotateTransform[] windDirectionScale;
-        Label[] timeScale;
-        IDrawData drawDataTemperatur;
-        IDrawData drawDataPrecipitation;
-        IDrawData drawDataPrecipitationProbability;
-        IDrawData drawDataWind;
-        IDrawData drawDataWindMax;
-        IDrawData drawDataWindDirection;
-        IDrawData drawDataHumidity;
-        bool dataLoaded = false;
+        private TextBlock[] overviewDate;
+        private TextBlock[] overviewTemperaturMinMax;
+        private TextBlock[] overviewPrecipitation;
+        private Label[] temperatureScale;
+        private Label[] precipitationScale;
+        private Label[] windScale;
+        private Label[] humidityScale;
+        private Label[] precipitationProbabilityScale;
+        private RotateTransform[] windDirectionScale;
+        private Label[] timeScale;
+        private IDrawData drawDataTemperatur;
+        private IDrawData drawDataPrecipitation;
+        private IDrawData drawDataPrecipitationProbability;
+        private IDrawData drawDataWind;
+        private IDrawData drawDataWindMax;
+        private IDrawData drawDataWindDirection;
+        private IDrawData drawDataHumidity;
+        private bool dataLoaded = false;
+        private double currentTime = 0;
+        private int currentYear = DateTime.UtcNow.Year;
+        private double offset = 0; // in minutes
+
         private void WeatherDisplay_Loaded(object sender, RoutedEventArgs e)
         {
             dataLoaded = false;
@@ -100,6 +116,42 @@ namespace DWDWeatherBand
                 return;
             }
 
+            overviewDate = new TextBlock[9]
+            {
+                Overview0_Date,
+                Overview1_Date,
+                Overview2_Date,
+                Overview3_Date,
+                Overview4_Date,
+                Overview5_Date,
+                Overview6_Date,
+                Overview7_Date,
+                Overview8_Date
+            };
+            overviewTemperaturMinMax = new TextBlock[9]
+            {
+                Overview0_TemperaturMinMax,
+                Overview1_TemperaturMinMax,
+                Overview2_TemperaturMinMax,
+                Overview3_TemperaturMinMax,
+                Overview4_TemperaturMinMax,
+                Overview5_TemperaturMinMax,
+                Overview6_TemperaturMinMax,
+                Overview7_TemperaturMinMax,
+                Overview8_TemperaturMinMax
+            };
+            overviewPrecipitation = new TextBlock[9]
+            {
+                Overview0_Precipitation,
+                Overview1_Precipitation,
+                Overview2_Precipitation,
+                Overview3_Precipitation,
+                Overview4_Precipitation,
+                Overview5_Precipitation,
+                Overview6_Precipitation,
+                Overview7_Precipitation,
+                Overview8_Precipitation
+            };
             temperatureScale = new Label[] {
                 LabelTemperatur0,
                 LabelTemperatur1,
@@ -267,7 +319,9 @@ namespace DWDWeatherBand
             DWDWeather.Item high = DWDWeather.AbsoluteHigh;
 
             DateTime now = DateTime.UtcNow;
-            double currentHour = (now.DayOfYear * 24 + now.Hour) * 60; // in Minutes
+            currentTime = (now.DayOfYear * 24 + now.Hour) * 60; // in Minutes
+            double currentHour = currentTime + offset; // in Minutes
+            double currentHourMax = currentHour + 24 * 60;
             Rectangle referencRect = new Rectangle()
             {
                 Fill = FindResource("HumidityColor") as SolidColorBrush,
@@ -279,7 +333,7 @@ namespace DWDWeatherBand
 
             drawDataTemperatur = new DrawDataAsPath(gridCanvasTP, TemperaturGraph, BrushType.LinearGradientBrush)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = GetUpperBound(high.Temperature, 5),
                 MinDataValueY = GetLowerBound(low.Temperature, 5),
@@ -287,7 +341,7 @@ namespace DWDWeatherBand
 
             drawDataPrecipitation = new DrawDataAsRectangle(canvasPrecipitation, referencRect, BrushType.SolidColorBrush)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = Math.Min(GetUpperBound(high.Precipitation, 5), 100),
                 MinDataValueY = Math.Max((int)(low.Precipitation / 5) * 5, 0),
@@ -295,7 +349,7 @@ namespace DWDWeatherBand
 
             drawDataPrecipitationProbability = new VirtualData(canvasPrecipitation)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = 100,
                 MinDataValueY = 0,
@@ -303,7 +357,7 @@ namespace DWDWeatherBand
 
             drawDataWind = new DrawDataAsPath(gridCanvasWH, WindGraph, BrushType.SolidColorBrush)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = GetUpperBound(high.MaxWind, 5),
                 MinDataValueY = GetLowerBound(low.Wind, 5),
@@ -311,7 +365,7 @@ namespace DWDWeatherBand
 
             drawDataWindMax = new DrawDataAsPath(gridCanvasWH, WindMaxGraph, BrushType.SolidColorBrush)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = GetUpperBound(high.MaxWind, 5),
                 MinDataValueY = GetLowerBound(low.Wind, 5),
@@ -319,7 +373,7 @@ namespace DWDWeatherBand
 
             drawDataWindDirection = new VirtualData(gridCanvasWH)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = 360,
                 MinDataValueY = 0,
@@ -327,7 +381,7 @@ namespace DWDWeatherBand
 
             drawDataHumidity = new DrawDataAsRectangle(canvasHumidity, referencRect, BrushType.SolidColorBrush)
             {
-                MaxDataValueX = currentHour + 24 * 60,
+                MaxDataValueX = currentHourMax,
                 MinDataValueX = currentHour,
                 MaxDataValueY = Math.Min(GetUpperBound(high.Humidity, 5), 100),
                 MinDataValueY = Math.Max((int)(low.Humidity / 5) * 5, 0),
@@ -342,7 +396,7 @@ namespace DWDWeatherBand
             }
             LoadingLabel.Visibility = Visibility.Collapsed;
 
-            KeyValuePair<double, double>[] parsedDataTenperatur = new KeyValuePair<double, double>[DWDWeather.Forcast.Length];
+            KeyValuePair<double, double>[] parsedDataTemperature = new KeyValuePair<double, double>[DWDWeather.Forcast.Length];
             KeyValuePair<double, double>[] parsedDataPrecipitation = new KeyValuePair<double, double>[DWDWeather.Forcast.Length];
             KeyValuePair<double, double>[] parsedDataPrecipitationProbability = new KeyValuePair<double, double>[DWDWeather.Forcast.Length];
             KeyValuePair<double, double>[] parsedDataWind = new KeyValuePair<double, double>[DWDWeather.Forcast.Length];
@@ -359,7 +413,7 @@ namespace DWDWeatherBand
                     yearChanged = (new DateTime(item.Time.Year, 1, 1) - new DateTime(now.Year, 1, 1)).TotalMinutes;
                 }
                 double time = (item.Time.DayOfYear * 24 + item.Time.Hour) * 60 + item.Time.Minute + yearChanged;
-                parsedDataTenperatur[i] = new KeyValuePair<double, double>(time, item.Temperature);
+                parsedDataTemperature[i] = new KeyValuePair<double, double>(time, item.Temperature);
                 parsedDataPrecipitation[i] = new KeyValuePair<double, double>(time, item.Precipitation);
                 parsedDataPrecipitationProbability[i] = new KeyValuePair<double, double>(time, item.PrecipitationProbability);
                 parsedDataWind[i] = new KeyValuePair<double, double>(time, item.Wind);
@@ -368,7 +422,7 @@ namespace DWDWeatherBand
                 parsedDataHumidity[i] = new KeyValuePair<double, double>(time, item.Humidity);
             }
 
-            drawDataTemperatur.SetData(parsedDataTenperatur);
+            drawDataTemperatur.SetData(parsedDataTemperature);
             drawDataPrecipitation.SetData(parsedDataPrecipitation);
             drawDataPrecipitationProbability.SetData(parsedDataPrecipitationProbability);
             drawDataWind.SetData(parsedDataWind);
@@ -378,15 +432,15 @@ namespace DWDWeatherBand
 
             CultureInfo culture = CultureInfo.InvariantCulture;
             double[] xScaleNames = drawDataTemperatur.XScaleNames(timeScale.Length); 
-            double lastYear = (new DateTime(DateTime.UtcNow.Year - 1, 1, 1) - new DateTime(DateTime.UtcNow.Year, 1, 1)).TotalMinutes;
-            double nextYear = (new DateTime(DateTime.UtcNow.Year + 1, 1, 1) - new DateTime(DateTime.UtcNow.Year, 1, 1)).TotalMinutes;
+            currentYear = DateTime.UtcNow.Year;
+            double lastYear = (new DateTime(currentYear - 1, 1, 1) - new DateTime(currentYear, 1, 1)).TotalMinutes;
+            double nextYear = (new DateTime(currentYear + 1, 1, 1) - new DateTime(currentYear, 1, 1)).TotalMinutes;
             for (int i = 0; i < timeScale.Length; i++)
             {
                 double time = xScaleNames[i];
                 int yearChange = time < 0 ? -1 : (time < nextYear ? 0 : 1);
-                int currentYear = DateTime.UtcNow.Year + yearChange;
                 time += yearChange * (yearChange == -1 ? lastYear : nextYear);
-                DateTime dateTime = new DateTime(currentYear, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(time).AddDays(-1);
+                DateTime dateTime = new DateTime(currentYear + yearChange, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(time).AddDays(-1);
                 timeScale[i].Content = $"{dateTime.ToLocalTime():HH}";
             }
 
@@ -451,7 +505,145 @@ namespace DWDWeatherBand
                     ((FrameworkElement)precipitationProbabilityScale[i].Parent).Visibility = Visibility.Hidden;
                 }
             }
+
+            UpdateOverview(currentHour);
+
             dataLoaded = true;
+        }
+
+        private void UpdateDrawing()
+        {
+            if (!dataLoaded)
+            {
+                return;
+            }
+
+            double currentHour = currentTime + offset;
+            double currentHourMax = currentHour + 24 * 60;
+
+            drawDataTemperatur.SetDataValueX(currentHour, currentHourMax);
+            drawDataPrecipitation.SetDataValueX(currentHour, currentHourMax);
+            drawDataPrecipitationProbability.SetDataValueX(currentHour, currentHourMax);
+            drawDataWind.SetDataValueX(currentHour, currentHourMax);
+            drawDataWindMax.SetDataValueX(currentHour, currentHourMax);
+            drawDataWindDirection.SetDataValueX(currentHour, currentHourMax);
+            drawDataHumidity.SetDataValueX(currentHour, currentHourMax);
+
+            drawDataTemperatur.Update();
+            drawDataPrecipitation.Update();
+            drawDataPrecipitationProbability.Update();
+            drawDataWind.Update();
+            drawDataWindMax.Update();
+            drawDataWindDirection.Update();
+            drawDataHumidity.Update();
+
+            CultureInfo culture = CultureInfo.InvariantCulture;
+            double[] xScaleNames = drawDataTemperatur.XScaleNames(timeScale.Length);
+            double lastYear = (new DateTime(currentYear - 1, 1, 1) - new DateTime(currentYear, 1, 1)).TotalMinutes;
+            double nextYear = (new DateTime(currentYear + 1, 1, 1) - new DateTime(currentYear, 1, 1)).TotalMinutes;
+            for (int i = 0; i < timeScale.Length; i++)
+            {
+                double time = xScaleNames[i];
+                int yearChange = time < 0 ? -1 : (time < nextYear ? 0 : 1);
+                time += yearChange * (yearChange == -1 ? lastYear : nextYear);
+                DateTime dateTime = new DateTime(currentYear + yearChange, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddMinutes(time).AddDays(-1);
+                timeScale[i].Content = $"{dateTime.ToLocalTime():HH}";
+            }
+            for (int i = 1; i < precipitationProbabilityScale.Length - 1; i++)
+            {
+                if (drawDataPrecipitationProbability.GetValueLocal(xScaleNames[i], out double precipitationProbabilityValue, 0))
+                {
+                    precipitationProbabilityScale[i].Content = $"{precipitationProbabilityValue.ToString("F0", culture)} %";
+                }
+                else
+                {
+                    precipitationProbabilityScale[i].Content = "- %";
+                }
+            }
+            for (int i = 0; i < windDirectionScale.Length; i++)
+            {
+                if (drawDataWindDirection.GetValueLocal(xScaleNames[i], out double windDirectionValue, 4))
+                {
+                    windDirectionScale[i].Angle = windDirectionValue - 180;
+                    ((FrameworkElement)precipitationProbabilityScale[i].Parent).Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ((FrameworkElement)precipitationProbabilityScale[i].Parent).Visibility = Visibility.Hidden;
+                }
+            }
+
+            UpdateOverview(currentHour);
+        }
+
+        private void UpdateOverview(double currentHour)
+        {
+            CultureInfo culture = CultureInfo.InvariantCulture;
+            DateTime currentDate = new DateTime(DateTime.Now.Year, 1, 1).AddMinutes(currentHour).AddDays(-1);
+            string dateParse = "ddd d MMM";
+            for (int i = 0; i < 9; i++)
+            {
+                DateTime date = currentDate.AddDays(i - 4);
+                if (date.Month == DateTime.Now.Month && date.Day == DateTime.Now.Day)
+                {
+                    overviewDate[i].Text = "Today";
+                }
+                else
+                {
+                    overviewDate[i].Text = date.ToString(dateParse, culture);
+                }
+            }
+
+            (float min, float max)[] temperatureMinMax = new (float, float)[9];
+            float[] precipitation = new float[9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                temperatureMinMax[i].min = float.MaxValue;
+                temperatureMinMax[i].max = float.MinValue;
+                precipitation[i] = 0;
+            }
+
+            DateTime dateMin = currentDate.AddDays(-4);
+            DateTime dateMax = currentDate.AddDays(4);
+            int daysInYear = DateTime.IsLeapYear(dateMin.Year) ? 366 : 356;
+
+            int itemStart = 0;
+            for (; itemStart < DWDWeather.Forcast.Length; itemStart++)
+            {
+                DWDWeather.ItemTimedForcast item = DWDWeather.Forcast[itemStart];
+                if(item.Time.DayOfYear >= dateMin.DayOfYear && item.Time.DayOfYear <= dateMax.DayOfYear)
+                {
+                    break;
+                }
+            }
+
+            for (int i = itemStart; i < DWDWeather.Forcast.Length; i++)
+            {
+                DWDWeather.ItemTimedForcast item = DWDWeather.Forcast[i];
+                int index = (item.Time.DayOfYear - dateMin.DayOfYear + daysInYear) % daysInYear;
+                if (index >= 9)
+                {
+                    break;
+                }
+                temperatureMinMax[index].min = Math.Min(temperatureMinMax[index].min, item.Temperature);
+                temperatureMinMax[index].max = Math.Max(temperatureMinMax[index].max, item.Temperature);
+                precipitation[index] += item.Precipitation;
+            }
+
+            for (int i = 0; i < 9; i++)
+            {
+                if (temperatureMinMax[i].min == float.MaxValue)
+                {
+                    overviewTemperaturMinMax[i].Text = $"- °|- °";
+                    overviewPrecipitation[i].Text = $"- mm";
+                }
+                else
+                {
+                    overviewTemperaturMinMax[i].Text = $"{temperatureMinMax[i].min.ToString("F0", culture)} °C | {temperatureMinMax[i].max.ToString("F0", culture)} °C";
+                    overviewPrecipitation[i].Text = $"{precipitation[i].ToString("F0", culture)} mm";
+                }
+            }
         }
 
         int GetLowerBound(double input, int bound)
@@ -460,6 +652,7 @@ namespace DWDWeatherBand
             return ((input % bound) > 0 ? divided : divided - 1) * bound;
 
         }
+
         int GetUpperBound(double input, int bound)
         {
             int divided = (int)(input / bound);
@@ -549,30 +742,74 @@ namespace DWDWeatherBand
             {
                 WindImage.Visibility = Visibility.Hidden;
             }
-
-
         }
         private void Indikator_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            indikatorEnabled = true;
+            indicatorEnabled = true;
             Point position = e.GetPosition(InputPanel);
             SetCurrent(position.X);
         }
 
         private void Indikator_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            indikatorEnabled = false;
+            indicatorEnabled = false;
             CurrentIndikatorTP.Visibility = Visibility.Hidden;
             CurrentIndikatorWH.Visibility = Visibility.Hidden;
         }
 
         private void Indikator_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (indikatorEnabled)
+            if (indicatorEnabled)
             {
                 Point position = e.GetPosition(InputPanel);
                 SetCurrent(position.X);
             }
+        }
+        private void InputPanel_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            offset += e.Delta * 0.5;
+            UpdateDrawing();
+            if (indicatorEnabled)
+            {
+                SetCurrent(CurrentIndikatorTP.X1);
+            }
+        }
+
+        private void NextLeft_Click(object sender, RoutedEventArgs e)
+        {
+            offset -= 720;  // 12 hours
+            UpdateDrawing();
+            if (indicatorEnabled)
+            {
+                SetCurrent(CurrentIndikatorTP.X1);
+            }
+        }
+
+        private void NextRight_Click(object sender, RoutedEventArgs e)
+        {
+            offset += 720;  // 12 hours
+            UpdateDrawing();
+            if (indicatorEnabled)
+            {
+                SetCurrent(CurrentIndikatorTP.X1);
+            }
+        }
+        private void Overview_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            int index = Grid.GetColumn(sender as UIElement);
+            offset += 1440 * (index - 4);  // 24 hours * overview index
+            Rectangle rectangle = (sender as Grid).Children[0] as Rectangle;
+            rectangle.Style = FindResource("Overview") as Style;
+            UpdateDrawing();
+            if (indicatorEnabled)
+            {
+                SetCurrent(CurrentIndikatorTP.X1);
+            }
+        }
+        private void Overview_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Rectangle rectangle = (sender as Grid).Children[0] as Rectangle;
+            rectangle.Style = FindResource("OverviewSelected") as Style;
         }
         #endregion
 
@@ -752,20 +989,6 @@ namespace DWDWeatherBand
                 Latitude_TextChanged(sender, e);
             }
         }
-
-        private void SetThemeColor()
-        {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            ColorForeground.SelectedColor = theme.Foreground;
-            ColorDisabledForeground.SelectedColor = theme.DisabledForeground;
-            ColorSelectedForeground.SelectedColor = theme.SelectedForeground;
-            ColorBackground.SelectedColor = theme.Background;
-            ColorBackgroundDark.SelectedColor = theme.BackgroundDark;
-            ColorBackgroundLight.SelectedColor = theme.BackgroundLight;
-
-            AssignTheme();
-        }
-
         private void AssignTheme()
         {
             ColorTemplate theme = property.Themes[property.SelectedTheme];
@@ -777,6 +1000,7 @@ namespace DWDWeatherBand
             Resources["ForegroundColor"] = theme.Foreground;
             Resources["DisabledForegroundColor"] = theme.DisabledForeground;
             Resources["SelectedForegroundColor"] = theme.SelectedForeground;
+            NotifyPropertyChanged();
         }
 
         private bool IsStandardTheme(string name)
@@ -807,7 +1031,7 @@ namespace DWDWeatherBand
             bool notStandard = !IsStandardTheme(name);
             ThemeRemove.IsEnabled = notStandard;
             ThemeSelector.IsEditable = notStandard;
-            SetThemeColor();
+            AssignTheme();
         }
 
         private void ThemeNew_Click(object sender, RoutedEventArgs e)
@@ -836,69 +1060,114 @@ namespace DWDWeatherBand
             ((Themes)ThemeSelector.ItemsSource).Remove(themeName);
         }
 
-        private void ColorForeground_Closed(object sender, RoutedEventArgs e)
+        public Color ColorForeground
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorForeground.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get 
             {
-                theme.Foreground = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.Foreground;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.Foreground = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
 
-        private void ColorDisabledForeground_Closed(object sender, RoutedEventArgs e)
+        public Color ColorDisabledForeground
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorDisabledForeground.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get
             {
-                theme.DisabledForeground = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.DisabledForeground;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.DisabledForeground = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
 
-        private void ColorSelectedForeground_Closed(object sender, RoutedEventArgs e)
+        public Color ColorSelectedForeground
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorSelectedForeground.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get
             {
-                theme.SelectedForeground = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.SelectedForeground;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.SelectedForeground = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
-
-        private void ColorBackground_Closed(object sender, RoutedEventArgs e)
+        public Color ColorBackground
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorBackground.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get
             {
-                theme.Background = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.Background;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.Background = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
-
-        private void ColorBackgroundDark_Closed(object sender, RoutedEventArgs e)
+        public Color ColorBackgroundDark
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorBackgroundDark.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get
             {
-                theme.BackgroundDark = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.BackgroundDark;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.BackgroundDark = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
-
-        private void ColorBackgroundLight_Closed(object sender, RoutedEventArgs e)
+        public Color ColorBackgroundLight
         {
-            ColorTemplate theme = property.Themes[property.SelectedTheme];
-            Color? color = ColorBackgroundLight.SelectedColor;
-            if (color != null && !IsStandardTheme(property.SelectedTheme))
+            get
             {
-                theme.BackgroundLight = (Color)color;
-                AssignTheme();
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                return theme.BackgroundLight;
+            }
+            set
+            {
+                ColorTemplate theme = property.Themes[property.SelectedTheme];
+                if (!IsStandardTheme(property.SelectedTheme))
+                {
+                    theme.BackgroundLight = value;
+                    AssignTheme();
+                    NotifyPropertyChanged();
+                }
             }
         }
 
@@ -919,7 +1188,7 @@ namespace DWDWeatherBand
             ColorTemplate theme = property.Themes[oldName].Copy();
             property.Themes.Remove(oldName);
             property.Themes.Add(newName, theme);
-            Themes themesCollection = ((Themes)ThemeSelector.ItemsSource);
+            Themes themesCollection = (Themes)ThemeSelector.ItemsSource;
             for (int i = 0; i < themesCollection.Count; i++)
             {
                 if (themesCollection[i] == oldName)
@@ -938,6 +1207,31 @@ namespace DWDWeatherBand
                 ThemeSelector_TextChanged(sender, e);
                 e.Handled = true;
             }
+        }
+        private void ShowIcon_Click(object sender, RoutedEventArgs e)
+        {
+            property.ShowIcon = ShowIcon.IsChecked == false ? false: true;
+            e.Handled = true;
+        }
+        private void ShowTemperaturMaxMin_Click(object sender, RoutedEventArgs e)
+        {
+            property.ShowMaxMinTemperature = ShowTemperaturMaxMin.IsChecked == false ? false : true;
+            e.Handled = true;
+        }
+        private void ShowHumidity_Click(object sender, RoutedEventArgs e)
+        {
+            property.ShowHumidity = ShowHumidity.IsChecked == false ? false : true;
+            e.Handled = true;
+        }
+        private void ShowPrecipitation_Click(object sender, RoutedEventArgs e)
+        {
+            property.ShowPrecipitation = ShowPreciptiation.IsChecked == false ? false : true;
+            e.Handled = true;
+        }
+        private void ShowWindSpeed_Click(object sender, RoutedEventArgs e)
+        {
+            property.ShowWindSpeed = ShowWindSpeed.IsChecked == false ? false : true;
+            e.Handled = true;
         }
         #endregion
     }

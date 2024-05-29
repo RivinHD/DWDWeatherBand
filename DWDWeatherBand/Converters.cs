@@ -115,5 +115,4 @@ namespace DWDWeatherBand
             throw new NotImplementedException();
         }
     }
-
 }

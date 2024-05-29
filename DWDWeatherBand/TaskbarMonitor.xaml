@@ -22,7 +22,7 @@
 
     <StackPanel x:Name="BasePanel" Orientation="Horizontal" d:Height="40" Background="Transparent" MouseRightButtonDown="BasePanel_MouseRightButtonDown" MouseRightButtonUp="BasePanel_MouseRightButtonUp" MouseLeftButtonDown="BasePanel_MouseLeftButtonDown" MouseLeftButtonUp="BasePanel_MouseLeftButtonUp">
         <Image x:Name="IconBlock" Source="/DWDWeatherBand;component/Resources/wettericons/Bewoelkt_schwer.png" IsHitTestVisible="False"/>
-
+        
         <Grid x:Name="TempraturBlock">
             <Grid.RowDefinitions>
                 <RowDefinition Height="2*"/>
@@ -75,7 +75,7 @@
             </StackPanel>
         </Grid>
 
-        <Popup x:Name="ShowInformation"  Placement="Top" StaysOpen="True" AllowsTransparency="True" d:IsOpen="True" d:Width="10" d:Height="10">
+        <Popup x:Name="ShowInformation"  Placement="Top" StaysOpen="True" AllowsTransparency="True" d:IsOpen="True" d:Width="10" d:Height="10" Closed="ShowInformation_Closed">
             <local:InformationPopup ParentPopup="{x:Reference ShowInformation}"/>
         </Popup>
         

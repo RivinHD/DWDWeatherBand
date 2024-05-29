@@ -1,9 +1,9 @@
 ﻿<UserControl x:Name="userControl" x:Class="DWDWeatherBand.InformationPopup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
              xmlns:local="clr-namespace:DWDWeatherBand"
              mc:Ignorable="d"
              Unloaded="WriteSettings">
@@ -13,7 +13,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
-            
+
             <local:MoveToBorderConverter x:Key="MoveToBorderConverter"/>
             <local:CompareVisibilityConverter x:Key="CompareVisibilityConverter"/>
             <local:SubtractConverter x:Key="SubtractConverter"/>
@@ -24,8 +24,9 @@
 
     <TabControl>
         <TabItem Header="Weather" PreviewMouseLeftButtonUp="TabItem_MouseLeftButtonUp" PreviewMouseLeftButtonDown="TabItem_MouseLeftButtonDown">
-            <Grid x:Name="WeatherDisplay" Width="800" Height="750" Loaded="WeatherDisplay_Loaded" >
+            <Grid x:Name="WeatherDisplay" Width="800" Height="850" Loaded="WeatherDisplay_Loaded" >
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="70"/>
                     <RowDefinition Height="1*"/>
                     <RowDefinition Height="16"/>
                     <RowDefinition Height="1*"/>
@@ -34,7 +35,148 @@
                     <RowDefinition Height="30"/>
                 </Grid.RowDefinitions>
 
-                <Canvas x:Name="canvasTemperaturPrecipitation" Grid.Row="0">
+                <Grid x:Name="Overview" Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Margin="6" x:Name="Overview0" Grid.Column="0" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview0_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview0_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview0_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview1" Grid.Column="1" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview1_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview1_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview1_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview2" Grid.Column="2" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview2_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview2_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview2_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview3" Grid.Column="3" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview3_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview3_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview3_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview4" Grid.Column="4" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview4_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview4_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview4_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview5" Grid.Column="5" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview5_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview5_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview5_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview6" Grid.Column="6" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview6_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview6_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview6_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview7" Grid.Column="7" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview7_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview7_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview7_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="6" x:Name="Overview8" Grid.Column="8" Background="Transparent" PreviewMouseLeftButtonUp="Overview_PreviewMouseLeftButtonUp" PreviewMouseLeftButtonDown="Overview_PreviewMouseLeftButtonDown">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <Rectangle UseLayoutRounding="True" Grid.RowSpan="3" Margin="-3" Style="{DynamicResource Overview}"/>
+                        <TextBlock x:Name="Overview8_Date" Grid.Row="0" Text="Mon 25 Apr" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="Overview8_TemperaturMinMax" Grid.Row="1" Text="11 °C | 23 °C" HorizontalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Image Source="/DWDWeatherBand;component/Resources/Precipitation.png" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="Overview8_Precipitation" Text="0 mm"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <Canvas x:Name="canvasTemperaturPrecipitation" Grid.Row="1">
                     <Grid d:Width="800" d:Height="370" x:Name="canvasPrecipitation" Width="{Binding ActualWidth, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasTemperaturPrecipitation, Mode=OneWay}" Margin="0,10,0,10">
                         <!--<Rectangle Width="5" Height="100" Fill="{StaticResource BrushSelectedForegroundColor}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="-10,0,0,0" Stroke="{StaticResource BrushBackgroundColor}" StrokeThickness="0.5"/>-->
                     </Grid>
@@ -174,7 +316,7 @@
                     </Grid>
                 </Canvas>
 
-                <Canvas x:Name="canvasWindHumidity" Grid.Row="2">
+                <Canvas x:Name="canvasWindHumidity" Grid.Row="3">
                     <Grid d:Width="800" d:Height="370" x:Name="canvasHumidity" Width="{Binding ActualWidth, ElementName=canvasWindHumidity, Mode=OneWay}" Height="{Binding ActualHeight, ConverterParameter=20, Converter={StaticResource SubtractConverter}, ElementName=canvasWindHumidity, Mode=OneWay}" Margin="0,10,0,10">
                         <!--<Rectangle Width="5" Height="100" Fill="{StaticResource BrushSelectedForegroundColor}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="-10,0,0,0" Stroke="{StaticResource BrushBackgroundColor}" StrokeThickness="0.5"/>-->
                     </Grid>
@@ -312,7 +454,7 @@
                     </Grid>
                 </Canvas>
 
-                <Grid x:Name="PrecipitationProbability" Grid.Row="1" VerticalAlignment="Top">
+                <Grid x:Name="PrecipitationProbability" Grid.Row="2" VerticalAlignment="Top">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
@@ -367,7 +509,7 @@
                     <Label Grid.Column="23" x:Name="PrecipitationProbability24" Content="15" VerticalAlignment="Bottom" Padding="0,0,0,0" Style="{StaticResource Transparent}" HorizontalAlignment="Right"/>
                 </Grid>
 
-                <Grid Grid.Row="3" VerticalAlignment="Top"  Margin="{Binding ActualWidth, ConverterParameter=25, Converter={StaticResource MoveToBorderConverter}, ElementName=canvasWindHumidity, Mode=OneWay}">
+                <Grid Grid.Row="4" VerticalAlignment="Top"  Margin="{Binding ActualWidth, ConverterParameter=25, Converter={StaticResource MoveToBorderConverter}, ElementName=canvasWindHumidity, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
@@ -523,11 +665,11 @@
                     </Image>
                 </Grid>
 
-                <StackPanel VerticalAlignment="Center" Height="56" Grid.RowSpan="4">
+                <StackPanel VerticalAlignment="Center" Height="56" Grid.Row="1" Grid.RowSpan="4">
                     <Label x:Name="LoadingLabel" Content="Loading..." Style="{StaticResource Transparent50}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="36" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
                 </StackPanel>
 
-                <Canvas x:Name="timeCanvas" Grid.Row="4">
+                <Canvas x:Name="timeCanvas" Grid.Row="5">
                     <Grid Width="{Binding ActualWidth, ElementName=timeCanvas, Mode=OneWay}" Height="{Binding ActualHeight, ElementName=timeCanvas, Mode=OneWay}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1*"/>
@@ -945,7 +1087,7 @@
                     </Grid>
                 </Canvas>
 
-                <Grid Grid.Row="5">
+                <Grid Grid.Row="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="2*"/>
@@ -982,7 +1124,17 @@
                     </StackPanel>
                 </Grid>
 
-                <Grid x:Name="InputPanel" Background="Transparent" PreviewMouseRightButtonDown="Indikator_MouseRightButtonDown" PreviewMouseLeftButtonDown="Indikator_MouseLeftButtonDown" Grid.RowSpan="5" PreviewMouseMove="Indikator_MouseMove"/>
+                <Grid x:Name="InputPanel" Background="Transparent" PreviewMouseRightButtonDown="Indikator_MouseRightButtonDown" PreviewMouseLeftButtonDown="Indikator_MouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="5" PreviewMouseMove="Indikator_MouseMove" PreviewMouseWheel="InputPanel_PreviewMouseWheel"/>
+
+                <Grid Grid.Row="1" Grid.RowSpan="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="25*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Style="{DynamicResource OnHoverVisibleButtonLeft}" Margin="-10,0,0,0" PreviewMouseMove="Indikator_MouseMove" Click="NextLeft_Click"/>
+                    <Button Grid.Column="2" Style="{DynamicResource OnHoverVisibleButtonRight}" Margin="0,0,-10,0" PreviewMouseMove="Indikator_MouseMove" Click="NextRight_Click"/>
+                </Grid>
             </Grid>
         </TabItem>
         <TabItem Header="Settings" PreviewMouseLeftButtonUp="TabItem_MouseLeftButtonUp" PreviewMouseLeftButtonDown="TabItem_MouseLeftButtonDown" Loaded="Settings_Loaded">
@@ -1033,23 +1185,23 @@
                     <StackPanel>
                         <Grid MinWidth="280" HorizontalAlignment="Left">
                             <Label Content="Show Icon" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                            <CheckBox x:Name="ShowIcon" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True" Click="ShowIcon_Click"/>
                         </Grid>
                         <Grid MinWidth="280" HorizontalAlignment="Left">
                             <Label Content="Show Max/Min Temperature" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                            <CheckBox x:Name="ShowTemperaturMaxMin" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True" Click="ShowTemperaturMaxMin_Click"/>
                         </Grid>
                         <Grid MinWidth="280" HorizontalAlignment="Left">
                             <Label Content="Show Humidity" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                            <CheckBox x:Name="ShowHumidity" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True" Click="ShowHumidity_Click"/>
                         </Grid>
                         <Grid MinWidth="280" HorizontalAlignment="Left">
                             <Label Content="Show Precipitation" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                            <CheckBox x:Name="ShowPreciptiation" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True" Click="ShowPrecipitation_Click"/>
                         </Grid>
                         <Grid MinWidth="280" HorizontalAlignment="Left">
                             <Label Content="Show Wind speed" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True"/>
+                            <CheckBox x:Name="ShowWindSpeed" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="True" Click="ShowWindSpeed_Click"/>
                         </Grid>
                     </StackPanel>
                 </Expander>
@@ -1062,27 +1214,33 @@
                         </StackPanel>
                         <Grid MinWidth="280">
                             <Label Content="Foreground"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorForeground" HorizontalAlignment="Right" ShowDropDownButton="True" Closed="ColorForeground_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{StaticResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorForeground, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                         <Grid MinWidth="280">
                             <Label Content="DisabledForeground"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorDisabledForeground" HorizontalAlignment="Right" Closed="ColorDisabledForeground_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{StaticResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorDisabledForeground, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                         <Grid MinWidth="280">
                             <Label Content="SelectedForeground"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorSelectedForeground" HorizontalAlignment="Right" Closed="ColorSelectedForeground_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{StaticResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorSelectedForeground, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                         <Grid MinWidth="280">
                             <Label Content="Background"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorBackground" HorizontalAlignment="Right" Closed="ColorBackground_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{StaticResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorBackground, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                         <Grid MinWidth="280">
                             <Label Content="BackgroundDark"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorBackgroundDark" HorizontalAlignment="Right" Closed="ColorBackgroundDark_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{StaticResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorBackgroundDark, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                         <Grid MinWidth="280">
                             <Label Content="BackgroundLight"/>
-                            <xctk:ColorPicker Width="100" x:Name="ColorBackgroundLight" HorizontalAlignment="Right" Closed="ColorBackgroundLight_Closed"/>
+                            <colorpicker:PortableColorPicker Width="100" HorizontalAlignment="Right" Style="{DynamicResource DefaultColorPickerStyle}"
+                                                             SelectedColor="{Binding Path=ColorBackgroundLight, ElementName=userControl, Mode=TwoWay}"/>
                         </Grid>
                     </StackPanel>
                 </Expander>
